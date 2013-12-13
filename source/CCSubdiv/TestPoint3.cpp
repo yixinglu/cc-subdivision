@@ -15,6 +15,11 @@ int main(int argc, char** argv) {
     cout << pf.getX() << endl;
     pf.setZ(1.0f);
     cout << pf.getZ() << endl;
+
+    Vector3f v(1,0,1), v2(0, 1, 1);
+    cout << dotProduct(v, v2) << endl;
+    cout << crossProduct(v, v2).getX() << endl;
+
     return 0;
 
 }
