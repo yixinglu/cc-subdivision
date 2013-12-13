@@ -83,8 +83,8 @@ inline Real Point3<Real>::getZ() const {
     return _z;
 }
 
-typedef Point3<double> Point3d;
 typedef Point3<float>  Point3f;
+typedef Point3<double> Point3d;
 typedef Point3f        Vector3f;
 typedef Point3d        Vector3d;
 
@@ -96,8 +96,8 @@ Real dotProduct(const Point3<Real>& p1, const Point3<Real>& p2) {
 template<typename Real>
 Point3<Real> crossProduct(const Point3<Real>& p1, const Point3<Real>& p2) {
     return Point3<Real>(p1.getY()*p2.getZ() - p1.getZ()*p2.getY(),
-                  p1.getZ()*p2.getX() - p1.getX()*p2.getZ(),
-                  p1.getX()*p2.getY() - p1.getY()*p2.getX());
+                        p1.getZ()*p2.getX() - p1.getX()*p2.getZ(),
+                        p1.getX()*p2.getY() - p1.getY()*p2.getX());
 }
 
 
