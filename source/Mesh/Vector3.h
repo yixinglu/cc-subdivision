@@ -15,7 +15,7 @@ public:
     Vector3(const Vector3 &);
     ~Vector3() {}
 
-    Vector3& operator = (const Vector3 &);
+    Vector3 & operator = (const Vector3 &);
 
     inline void setCoordinate(Real, Real, Real);
     inline Real getX() const;
@@ -98,8 +98,8 @@ Real dotProduct(const Vector3<Real> &v1, const Vector3<Real> &v2) {
 
 template<typename Real>
 Vector3<Real> crossProduct(const Vector3<Real> &v1, const Vector3<Real> &v2) {
-    return Vector3<Real>(v1.getY() * v2.getZ() - v1.getZ() * v2.getY() +
-                         v1.getZ() * v2.getX() - v1.getX() * v2.getZ() +
+    return Vector3<Real>(v1.getY() * v2.getZ() - v1.getZ() * v2.getY(),
+                         v1.getZ() * v2.getX() - v1.getX() * v2.getZ(),
                          v1.getX() * v2.getY() - v1.getY() * v2.getX());
 }
 
