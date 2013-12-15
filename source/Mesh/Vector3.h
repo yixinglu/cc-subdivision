@@ -9,9 +9,8 @@ namespace Subdiv {
 template<typename Real>
 class Vector3 {
 public:
-    Vector3(Real x = (Real)0,
-            Real y = (Real)0,
-            Real z = (Real)0);
+    Vector3();
+    Vector3(Real, Real, Real);
     Vector3(const Vector3 &);
     ~Vector3() {}
 
@@ -28,6 +27,11 @@ public:
 private:
     Point3<Real> coord;
 };
+
+template<typename Real>
+Vector3<Real>::Vector3() {
+    setCoordinate((Real)0, (Real)0, (Real)0);
+}
 
 template<typename Real>
 Vector3<Real>::Vector3(Real x, Real y, Real z) {
@@ -71,21 +75,18 @@ inline Real Vector3<Real>::getZ() const {
 
 template<typename Real>
 inline void Vector3<Real>::normalize() {
-    const Real len = length();
+    Real len = length();
     if (len < TOLERANCE_EPSILON) {
         assert(!"length is zero");
         return;
     }
-    coord.x /= len;
-    coord.y /= len;
-    coord.z /= len;
+    len = (Real)1 / len;
+    setCoordinate(getX()*len, getY()*len, getZ()*len);
 }
 
 template<typename Real>
 inline Real Vector3<Real>::length() const {
-    return sqrt(coord.x * coord.x +
-                coord.y * coord.y +
-                coord.z * coord.z);
+    return sqrt(getx() * getX() + getY() * getY() + getZ() * getZ());
 }
 
 typedef Vector3<REAL32> Vector3f;
