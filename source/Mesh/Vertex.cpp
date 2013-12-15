@@ -9,7 +9,7 @@ Vertex::Vertex() {
 Vertex::Vertex(const Vertex &v)
     : normal(v.normal)
     , vecEdgeIndex(v.vecEdgeIndex)
-    , vecFaceIndex(v,vecFaceIndex) {
+    , vecFaceIndex(v.vecFaceIndex) {
         setCoordinate(v.coordinate);
 }
 

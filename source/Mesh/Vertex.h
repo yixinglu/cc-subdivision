@@ -19,8 +19,8 @@ public:
     inline void addAdjacentFace(int);
     void removeAdjacentEdge(int);
     void removeAdjacentFace(int);
-    inline void getAdjacentEdge(const std::vector<int> &) const;
-    inline void getAdjacentFace(const std::vector<int> &) const;
+    inline void getAdjacentEdge(std::vector<int> &) const;
+    inline void getAdjacentFace(std::vector<int> &) const;
 
     inline const Point3f & getCoordinate() const;
     inline void setCoordinate(const Point3f &);
@@ -37,7 +37,7 @@ private:
 
 void Vertex::addAdjacentEdge(int edgeIdx) {
     assert(edgeIdx >= 0);
-    vecEdgeIndex.push_back(edgeidx);
+    vecEdgeIndex.push_back(edgeIdx);
 }
 
 void Vertex::addAdjacentFace(int faceIdx) {
@@ -55,21 +55,21 @@ inline void Vertex::setCoordinate(const Point3f &p) {
     coordinate.z = p.z;
 }
 
-inline void setNormal(const Vector3f &norm) {
+inline void Vertex::setNormal(const Vector3f &norm) {
     normal = norm;
 }
 
-inline const Vector3f & getNormal() const {
+inline const Vector3f & Vertex::getNormal() const {
     return normal;
 }
 
-inline void Vertex::getAdjacentEdge(const std::vector<int> &vecAdjEdges) const {
+inline void Vertex::getAdjacentEdge(std::vector<int> &vecAdjEdges) const {
     vecAdjEdges = vecEdgeIndex;
 }
 
-inline void Vertex::getAdjacentFace(const std::vector<int> &vecAdjFaces) const;
+inline void Vertex::getAdjacentFace(std::vector<int> &vecAdjFaces) const {
     vecAdjFaces = vecFaceIndex;
 }
 
-
+}
 #endif

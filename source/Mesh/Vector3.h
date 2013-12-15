@@ -86,7 +86,7 @@ inline void Vector3<Real>::normalize() {
 
 template<typename Real>
 inline Real Vector3<Real>::length() const {
-    return sqrt(getx() * getX() + getY() * getY() + getZ() * getZ());
+    return sqrt(getX() * getX() + getY() * getY() + getZ() * getZ());
 }
 
 typedef Vector3<REAL32> Vector3f;
