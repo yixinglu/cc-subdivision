@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../Mesh/Vector3.h"
 #include "../Mesh/Vertex.h"
+#include "../Mesh/Edge.h"
 
 using namespace std;
 using namespace Subdiv;
@@ -40,7 +41,20 @@ void testVertex() {
 
 }
 
+void testEdge() {
+    cout << "*** test Edge ***" << endl;
+    Edge edge;
+    edge.setVertex(0, 1);
+    int s, e;
+    edge.getVertex(s, e);
+    cout << s << " " << e << endl;
+    edge.addAdjacentFace(0);
+    vector<int> vec;
+    edge.getAdjacentFace(vec);
+}
+
 int main (int argc, char** argv) {
     testVector3();
     testVertex();
+    testEdge();
 }

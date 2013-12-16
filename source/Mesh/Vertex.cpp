@@ -2,7 +2,10 @@
 
 using namespace Subdiv;
 
-Vertex::Vertex() {
+Vertex::Vertex()
+    : normal()
+    , vecEdgeIndex()
+    , vecFaceIndex() {
     coordinate.x = coordinate.y = coordinate.z = 0.f;
 }
 
