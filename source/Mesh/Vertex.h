@@ -35,12 +35,12 @@ private:
     std::vector<int>    vecFaceIndex;
 };
 
-void Vertex::addAdjacentEdge(int edgeIdx) {
+inline void Vertex::addAdjacentEdge(int edgeIdx) {
     assert(edgeIdx >= 0);
     vecEdgeIndex.push_back(edgeIdx);
 }
 
-void Vertex::addAdjacentFace(int faceIdx) {
+inline void Vertex::addAdjacentFace(int faceIdx) {
     assert(faceIdx >= 0);
     vecFaceIndex.push_back(faceIdx);
 }
