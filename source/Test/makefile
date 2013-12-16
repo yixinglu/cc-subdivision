@@ -1,10 +1,18 @@
-PROGRAM = TestVector3 TestVertex
+OBJECTS = test.o Vertex.o
+vpath % ../Mesh/
+test : $(OBJECTS)
+	g++ -o test $(OBJECTS)
 
-all : $(PROGRAM)
-.PHONY : all
+test.o : test.cpp Vector3.h Vertex.h
+	g++ -c test.cpp
 
-include TestVector3.mk TestVertex.mk
+Vector3.o : Vertex.cpp Vector3.h Point3.h
+	g++ -c ../Mesh/Vertex.cpp
 
-.PHONY : clean
-clean :
-	-rm -f *.o $(PROGRAM)
+.PHONY : cleanall
+cleanall :
+	-rm -f *.o test
+
+.PHONY : cleanobj
+cleanobj :
+	-rm -f *.o
