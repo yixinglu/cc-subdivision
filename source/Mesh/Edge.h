@@ -2,7 +2,6 @@
 #define EDGE_H_INCLUDE
 
 #include <vector>
-#include "GlobalDef.h"
 
 namespace Subdiv {
 
