@@ -11,10 +11,12 @@
 namespace ccsubdiv {
 
 class HEdge;
-typedef std::shared_ptr<HEdge> hedge_handle;
 class Vertex;
-typedef std::shared_ptr<Vertex> vertex_handle;
 class Face;
+class Mesh;
+
+typedef std::shared_ptr<HEdge> hedge_handle;
+typedef std::shared_ptr<Vertex> vertex_handle;
 typedef std::shared_ptr<Face> face_handle;
 
 
@@ -38,6 +40,7 @@ public:
   Face() : edge(nullptr), facepoint(nullptr) {}
 
   vertex_handle centerpoint() const;
+  void split_by_edge(hedge_handle edge, Mesh* mesh);
 
   hedge_handle edge;
   vertex_handle facepoint;

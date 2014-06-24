@@ -99,10 +99,10 @@ hedge_handle HEdge::last_edge_without_pair() const {
 }
 
 
-static void split_one_face(Face& face, HEdge& edge, Mesh* mesh) {
+void Face::split_by_edge(hedge_handle edge, Mesh* mesh) {
   face_handle pf(new Face);
   hedge_handle pe1(new HEdge);
-  pe1->vert = face.facepoint;
+  pe1->vert = facepoint;
   assert(pe1->vert != nullptr);
   if (pe1->vert->edge) {
     // associate pair edges
@@ -110,46 +110,46 @@ static void split_one_face(Face& face, HEdge& edge, Mesh* mesh) {
     pe1->pair->pair = pe1;
   }
   else {
-    face.facepoint->edge = pe1;
+    facepoint->edge = pe1;
   }
   pe1->face = pf;
   pf->edge = pe1;
   mesh->edges.push_back(pe1);
 
   hedge_handle pe2(new HEdge);
-  pe2->vert = edge.edgepoint;
+  pe2->vert = edge->edgepoint;
   assert(pe2->vert);
   if (pe2->vert->edge) {
     pe2->pair = pe2->vert->edge->last_edge_without_pair();
     pe2->pair->pair = pe2;
   }
   else {
-    edge.edgepoint->edge = pe2;
+    edge->edgepoint->edge = pe2;
   }
   pe2->face = pf;
   pe1->next = pe2;
   mesh->edges.push_back(pe2);
 
-  assert(edge.next);
+  assert(edge->next);
   hedge_handle pe3(new HEdge);
-  pe3->vert = edge.next->vert;
-  assert(edge.next->edgepoint);
-  if (edge.next->edgepoint->edge) {
+  pe3->vert = edge->next->vert;
+  assert(edge->next->edgepoint);
+  if (edge->next->edgepoint->edge) {
     // associate the pair half edge
-    pe3->pair = edge.next->edgepoint->edge;
+    pe3->pair = edge->next->edgepoint->edge;
     pe3->pair->pair = pe3;
   }
   else {
-    edge.next->edgepoint->edge = pe3;
+    edge->next->edgepoint->edge = pe3;
   }
   pe3->face = pf;
   pe2->next = pe3;
   mesh->edges.push_back(pe3);
 
   hedge_handle pe4(new HEdge);
-  pe4->vert = edge.next->edgepoint;
-  if (face.edge == edge.next) {
-    pe4->pair = face.facepoint->edge;
+  pe4->vert = edge->next->edgepoint;
+  if (edge == edge->next) {
+    pe4->pair = facepoint->edge;
     pe4->pair->pair = pe4;
   }
   pe4->face = pf;
@@ -163,8 +163,11 @@ static void split_one_face(Face& face, HEdge& edge, Mesh* mesh) {
 static void connect_edges(Mesh& input_mesh,
                           Mesh* result_mesh) {
   for (auto& face : input_mesh.faces) {
-    auto pe = face->edge;
-    split_one_face(*face, *pe, result_mesh);
+    hedge_handle pe = face->edge;;
+    do {
+      face->split_by_edge(pe, result_mesh);
+      pe = pe->next;
+    } while (pe != face->edge);
   }
 }
 
