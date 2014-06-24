@@ -163,7 +163,7 @@ void Face::split_by_edge(hedge_handle edge, Mesh* mesh) {
 static void connect_edges(Mesh& input_mesh,
                           Mesh* result_mesh) {
   for (auto& face : input_mesh.faces) {
-    hedge_handle pe = face->edge;;
+    hedge_handle pe = face->edge;
     do {
       face->split_by_edge(pe, result_mesh);
       pe = pe->next;
