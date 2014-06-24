@@ -1,194 +1,163 @@
 #include "datatype.h"
-#include <assert.h>
 #include <math.h>
 
 namespace ccsubdiv {
 
-static void add_vec3(const double v1[3], const double v2[3], double ret[3])
-{
-  ret[0] = v1[0] + v2[0];
-  ret[1] = v1[1] + v2[1];
-  ret[2] = v1[2] + v2[2];
-}
-
-static void div_vec3(const double v[3], const double d, double ret[3]) {
-  if (abs(d) > 1.0e-05) {
-    ret[0] = v[0] / d;
-    ret[1] = v[1] / d;
-    ret[2] = v[2] / d;
-  }
-}
   
-static void calc_face_centerpoint(const Face& face, Vertex* vertex) {
-  HEdge* beg = face.edge;
-  HEdge* end = beg;
+vertex_handle Face::centerpoint() const {
+  auto beg = edge;
+  auto end = beg;
   size_t sz = 0;
+  vertex_handle cp(new Vertex);
   do {
-    add_vec3(vertex->coord, beg->vert->coord, vertex->coord);
+    cp->coord += beg->vert->coord;
     beg = beg->next;
     ++sz;
   } while (beg != end);
-  div_vec3(vertex->coord, sz, vertex->coord);
+  cp->coord /= sz;
+  return cp;
 }
 
-static void calc_facepoints(Mesh& input_mesh, Mesh* result_mesh)
-{
-  for (auto& iter: input_mesh.faces) {
-    std::shared_ptr<Vertex> vert(new Vertex);
-    calc_face_centerpoint(*iter, vert.get());
-    result_mesh->vertices.push_back(vert); 
-    iter->facepoint = result_mesh->vertices.back().get();
+static void calc_facepoints(Mesh& input_mesh, Mesh* result_mesh) {
+  for (auto& face: input_mesh.faces) {
+    result_mesh->vertices.push_back(face->centerpoint()); 
+    face->facepoint = result_mesh->vertices.back();
   }
 }
 
-static void calc_edgepoints(Mesh& input_mesh, Mesh* result_mesh)
-{
-  for (auto& iter: input_mesh.edges) {
-    std::shared_ptr<Vertex> vert(new Vertex);
-    HEdge* another = iter->next;
-    add_vec3(another->vert->coord, iter->vert->coord, vert->coord);
-    add_vec3(vert->coord, iter->face->facepoint->coord, vert->coord);
-    add_vec3(vert->coord, iter->pair->face->facepoint->coord, vert->coord);
-    div_vec3(vert->coord, 4, vert->coord);
+static void calc_edgepoints(Mesh& input_mesh, Mesh* result_mesh) {
+  for (auto& edge: input_mesh.edges) {
+    vertex_handle vert(new Vertex);
+    auto next_edge = edge->next;
+    vert->coord = next_edge->vert->coord + edge->vert->coord;
+    vert->coord += edge->face->facepoint->coord;
+    vert->coord += edge->pair->face->facepoint->coord;
+    vert->coord /= 4;
     result_mesh->vertices.push_back(vert);
-    iter->edgepoint = iter->pair->edgepoint = result_mesh->vertices.back().get();
+    edge->edgepoint = edge->pair->edgepoint
+                    = result_mesh->vertices.back();
   }
 }
 
-static void reset_coord(Vertex& vert) {
-  vert.coord[0] = vert.coord[1] = vert.coord[2];
-}
-
-static void average_of_adjacent_facepoints(const Vertex& vert,
-                                           Vertex* result) {
-  HEdge* beg = vert.edge;
-  HEdge* end = beg;
+void Vertex::average_of_adjacent_facepoints(vertex_handle& avg) const {
+  auto beg = edge;
+  auto end = beg;
   size_t sz = 0;
   do {
-    add_vec3(result->coord, beg->face->facepoint->coord,result->coord);
+    avg->coord += beg->face->facepoint->coord;
     beg = beg->pair->next;
     ++sz;
   } while(beg != end);
-
-  div_vec3(result->coord, sz, result->coord);
+  avg->coord /= sz;
 }
 
-static void average_of_adjacent_edgepoints(const Vertex& vert,
-                                           Vertex* result, size_t* sz)
-{
-  HEdge* beg = vert.edge;
-  HEdge* end = beg;
-  *sz = 0;
+size_t Vertex::average_of_adjacent_edgepoints(vertex_handle& avg) const {
+  auto beg = edge;
+  auto end = beg;
+  size_t sz = 0;
   do {
-    add_vec3(result->coord, beg->edgepoint->coord, result->coord);
+    avg->coord += beg->edgepoint->coord;
     beg = beg->pair->next;
-    ++*sz;
+    ++sz;
   } while( beg != end );
-  div_vec3(result->coord, *sz * 0.5, result->coord);
+  avg->coord /= sz * 0.5;
+  return sz;
 }
 
 static void calc_new_vertices(Mesh& input_mesh, Mesh* result_mesh) {
-  for (auto iter: input_mesh.vertices) {
-    std::shared_ptr<Vertex> vert(new Vertex);
-    size_t sz = 0;
-    reset_coord(*vert); 
-    average_of_adjacent_facepoints(*iter, vert.get());
-    average_of_adjacent_edgepoints(*iter, vert.get(), &sz); 
-    double temp[3];
-    assert(sz != 3);
-    div_vec3(iter->coord, 1.0/(sz-3), temp);
-    add_vec3(vert->coord, temp, vert->coord);
-    div_vec3(vert->coord, sz, vert->coord);
-    result_mesh->vertices.push_back(vert);
-    iter->newpoint = result_mesh->vertices.back().get(); 
+  for (auto vert: input_mesh.vertices) {
+    vertex_handle new_vert(new Vertex);
+    vert->average_of_adjacent_facepoints(new_vert);
+    size_t sz = vert->average_of_adjacent_edgepoints(new_vert);
+    new_vert->coord += vert->coord * (sz - 3);
+    new_vert->coord /= sz;
+    result_mesh->vertices.push_back(new_vert);
+    vert->newpoint = result_mesh->vertices.back();
   }
 }
 
-static void calc_vertices(Mesh& input_mesh,
-                          Mesh* result_mesh) {
+static void calc_vertices(Mesh& input_mesh, Mesh* result_mesh) {
   calc_facepoints(input_mesh, result_mesh);
   calc_edgepoints(input_mesh, result_mesh);
   calc_new_vertices(input_mesh, result_mesh);
 }
 
-static const HEdge* get_previous_edge(const HEdge& edge) {
-  const HEdge* pe = &edge;
-  const HEdge* pnext = pe->next;
-  while (pnext != &edge) {
+hedge_handle HEdge::previous_edge() const {
+  auto pnext = this->next;
+  hedge_handle pe;
+  while (pnext.get() != this) {
     pe = pnext;
-    assert(pnext != nullptr);
+    assert(pnext);
     pnext = pnext->next;
   }
   return pe;
 }
 
-static const HEdge* get_last_edge_without_pair(const HEdge& edge) {
-  auto pe = get_previous_edge(edge);
-  while (pe != nullptr) {
-    pe = get_previous_edge( *pe->pair );
+hedge_handle HEdge::last_edge_without_pair() const {
+  auto pe = previous_edge();
+  while (pe) {
+    pe = pe->pair->previous_edge();
   }
   return pe;
 }
 
 
 static void split_one_face(Face& face, HEdge& edge, Mesh* mesh) {
-  std::shared_ptr<Face> pf(new Face);
-  std::shared_ptr<HEdge> pe1(new HEdge);
+  face_handle pf(new Face);
+  hedge_handle pe1(new HEdge);
   pe1->vert = face.facepoint;
   assert(pe1->vert != nullptr);
   if (pe1->vert->edge) {
     // associate pair edges
-    pe1->pair = const_cast<HEdge*>(
-      get_last_edge_without_pair(*pe1->vert->edge));
-    pe1->pair->pair = pe1.get();
+    pe1->pair = pe1->vert->edge->last_edge_without_pair();
+    pe1->pair->pair = pe1;
   }
   else {
-    face.facepoint->edge = pe1.get();
+    face.facepoint->edge = pe1;
   }
-  pe1->face = pf.get();
-  pf->edge = pe1.get();
+  pe1->face = pf;
+  pf->edge = pe1;
   mesh->edges.push_back(pe1);
 
-  std::shared_ptr<HEdge> pe2(new HEdge);
+  hedge_handle pe2(new HEdge);
   pe2->vert = edge.edgepoint;
-  assert(pe2->vert != nullptr);
+  assert(pe2->vert);
   if (pe2->vert->edge) {
-    pe2->pair = const_cast<HEdge*>(
-      get_last_edge_without_pair(*pe2->vert->edge));
-    pe2->pair->pair = pe2.get();
+    pe2->pair = pe2->vert->edge->last_edge_without_pair();
+    pe2->pair->pair = pe2;
   }
   else {
-    edge.edgepoint->edge = pe2.get();
+    edge.edgepoint->edge = pe2;
   }
-  pe2->face = pf.get();
-  pe1->next = pe2.get();
+  pe2->face = pf;
+  pe1->next = pe2;
   mesh->edges.push_back(pe2);
 
-  assert(edge.next != nullptr);
-  std::shared_ptr<HEdge> pe3(new HEdge);
+  assert(edge.next);
+  hedge_handle pe3(new HEdge);
   pe3->vert = edge.next->vert;
-  assert(edge.next->edgepoint != nullptr);
+  assert(edge.next->edgepoint);
   if (edge.next->edgepoint->edge) {
     // associate the pair half edge
     pe3->pair = edge.next->edgepoint->edge;
-    pe3->pair->pair = pe3.get();
+    pe3->pair->pair = pe3;
   }
   else {
-    edge.next->edgepoint->edge = pe3.get();
+    edge.next->edgepoint->edge = pe3;
   }
-  pe3->face = pf.get();
-  pe2->next = pe3.get();
+  pe3->face = pf;
+  pe2->next = pe3;
   mesh->edges.push_back(pe3);
 
-  std::shared_ptr<HEdge> pe4(new HEdge);
+  hedge_handle pe4(new HEdge);
   pe4->vert = edge.next->edgepoint;
   if (face.edge == edge.next) {
     pe4->pair = face.facepoint->edge;
-    pe4->pair->pair = pe4.get();
+    pe4->pair->pair = pe4;
   }
-  pe4->face = pf.get();
-  pe4->next = pe1.get();
-  pe3->next = pe4.get();
+  pe4->face = pf;
+  pe4->next = pe1;
+  pe3->next = pe4;
   mesh->edges.push_back(pe4);
 
   mesh->faces.push_back(pf);
@@ -197,7 +166,7 @@ static void split_one_face(Face& face, HEdge& edge, Mesh* mesh) {
 static void connect_edges(Mesh& input_mesh,
                           Mesh* result_mesh) {
   for (auto& face : input_mesh.faces) {
-    HEdge* pe = face->edge;
+    auto pe = face->edge;
     split_one_face(*face, *pe, result_mesh);
   }
 }
@@ -225,10 +194,4 @@ void ccsubdivision(Mesh& input_mesh, const size_t n,
 } // namespace ccsubdiv
 
 
-using namespace ccsubdiv;
-int main() {
-  Mesh mesh;
-  ccsubdivision(mesh, 1, &mesh); 
 
-  return 0;
-}

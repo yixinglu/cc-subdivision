@@ -3,38 +3,66 @@
 #ifndef CCSUBDIV_DATATYPE_H_
 #define CCSUBDIV_DATATYPE_H_
 
-#include <vector>
 #include <memory>
+#include <vector>
+
+#include "mathutil.h"
 
 namespace ccsubdiv {
 
-struct HEdge;
+class HEdge;
+typedef std::shared_ptr<HEdge> hedge_handle;
+class Vertex;
+typedef std::shared_ptr<Vertex> vertex_handle;
+class Face;
+typedef std::shared_ptr<Face> face_handle;
 
-struct Vertex {
-  double coord[3];
-  double norm[3];
 
-  HEdge* edge;
-  Vertex* newpoint; 
+class Vertex {
+public:
+  Vertex() : coord(), norm(),
+    edge(nullptr), newpoint(nullptr) {}
+
+  void average_of_adjacent_facepoints(vertex_handle& avg) const;
+  size_t average_of_adjacent_edgepoints(vertex_handle& avg) const;
+
+  vec3d coord;
+  vec3d norm;
+
+  hedge_handle edge;
+  vertex_handle newpoint;
 };
 
-struct Face {
-  HEdge* edge;
-  Vertex* facepoint;
+class Face {
+public:
+  Face() : edge(nullptr), facepoint(nullptr) {}
+
+  vertex_handle centerpoint() const;
+
+  hedge_handle edge;
+  vertex_handle facepoint;
 };
 
-struct HEdge {
-  Vertex* vert; // start vertex(not end) of edge
-  Vertex* edgepoint;
-  HEdge* pair;
-  Face* face;
-  HEdge* next;
+class HEdge {
+public:
+  HEdge() : vert(nullptr), edgepoint(nullptr),
+    pair(nullptr), next(nullptr), face(nullptr) {}
+
+  hedge_handle previous_edge() const;
+  hedge_handle last_edge_without_pair() const;
+
+  vertex_handle vert; // start vertex(not end) of edge
+  vertex_handle edgepoint;
+  hedge_handle pair;
+  hedge_handle next;
+  face_handle face;
 };
 
-struct Mesh {
-  std::vector< std::shared_ptr<Vertex> > vertices;
-  std::vector< std::shared_ptr<HEdge> > edges;
-  std::vector< std::shared_ptr<Face> > faces;
+class Mesh {
+public:
+  std::vector< vertex_handle > vertices;
+  std::vector< hedge_handle > edges;
+  std::vector< face_handle > faces;
 };
 
 void ccsubdivision(Mesh&, const size_t, Mesh*);
