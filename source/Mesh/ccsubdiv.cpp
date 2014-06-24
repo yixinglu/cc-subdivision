@@ -6,14 +6,13 @@ namespace ccsubdiv {
   
 vertex_handle Face::centerpoint() const {
   auto beg = edge;
-  auto end = beg;
   size_t sz = 0;
   vertex_handle cp(new Vertex);
   do {
     cp->coord += beg->vert->coord;
     beg = beg->next;
     ++sz;
-  } while (beg != end);
+  } while (beg != edge);
   cp->coord /= sz;
   return cp;
 }
