@@ -39,27 +39,25 @@ static void calc_edgepoints(Mesh& input_mesh, Mesh* result_mesh) {
   }
 }
 
-void Vertex::average_of_adjacent_facepoints(vertex_handle& avg) const {
+void Vertex::average_of_adjacent_facepoints(vertex_handle avg) const {
   auto beg = edge;
-  auto end = beg;
   size_t sz = 0;
   do {
     avg->coord += beg->face->facepoint->coord;
     beg = beg->pair->next;
     ++sz;
-  } while(beg != end);
+  } while(beg != edge);
   avg->coord /= sz;
 }
 
-size_t Vertex::average_of_adjacent_edgepoints(vertex_handle& avg) const {
+size_t Vertex::average_of_adjacent_edgepoints(vertex_handle avg) const {
   auto beg = edge;
-  auto end = beg;
   size_t sz = 0;
   do {
     avg->coord += beg->edgepoint->coord;
     beg = beg->pair->next;
     ++sz;
-  } while( beg != end );
+  } while( beg != edge );
   avg->coord /= sz * 0.5;
   return sz;
 }

@@ -23,8 +23,8 @@ public:
   Vertex() : coord(), norm(),
     edge(nullptr), newpoint(nullptr) {}
 
-  void average_of_adjacent_facepoints(vertex_handle& avg) const;
-  size_t average_of_adjacent_edgepoints(vertex_handle& avg) const;
+  void average_of_adjacent_facepoints(vertex_handle) const;
+  size_t average_of_adjacent_edgepoints(vertex_handle) const;
 
   vec3d coord;
   vec3d norm;

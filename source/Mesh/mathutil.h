@@ -8,8 +8,7 @@ namespace ccsubdiv {
 
 template<typename T> class Vec3 {
 public:
-  Vec3(const T x = 0.0, const T y = 0.0,
-       const T z = 0.0) {
+  Vec3(const T x = 0, const T y = 0, const T z = 0) {
     xyz[0] = x; xyz[1] = y; xyz[2] = z;
   }
 
