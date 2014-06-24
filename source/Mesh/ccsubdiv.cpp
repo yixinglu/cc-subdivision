@@ -17,15 +17,15 @@ vertex_handle Face::centerpoint() const {
   return cp;
 }
 
-static void calc_facepoints(Mesh& input_mesh, Mesh* result_mesh) {
-  for (auto& face: input_mesh.faces) {
+static void calc_facepoints(mesh_handle input_mesh, mesh_handle result_mesh) {
+  for (auto& face: input_mesh->faces) {
     result_mesh->vertices.push_back(face->centerpoint()); 
     face->facepoint = result_mesh->vertices.back();
   }
 }
 
-static void calc_edgepoints(Mesh& input_mesh, Mesh* result_mesh) {
-  for (auto& edge: input_mesh.edges) {
+static void calc_edgepoints(mesh_handle input_mesh, mesh_handle result_mesh) {
+  for (auto& edge: input_mesh->edges) {
     vertex_handle vert(new Vertex);
     auto next_edge = edge->next;
     vert->coord = next_edge->vert->coord + edge->vert->coord;
@@ -61,8 +61,8 @@ size_t Vertex::average_of_adjacent_edgepoints(vertex_handle avg) const {
   return sz;
 }
 
-static void calc_new_vertices(Mesh& input_mesh, Mesh* result_mesh) {
-  for (auto vert: input_mesh.vertices) {
+static void calc_new_vertices(mesh_handle input_mesh, mesh_handle result_mesh) {
+  for (auto vert: input_mesh->vertices) {
     vertex_handle new_vert(new Vertex);
     vert->average_of_adjacent_facepoints(new_vert);
     size_t sz = vert->average_of_adjacent_edgepoints(new_vert);
@@ -73,7 +73,7 @@ static void calc_new_vertices(Mesh& input_mesh, Mesh* result_mesh) {
   }
 }
 
-static void calc_vertices(Mesh& input_mesh, Mesh* result_mesh) {
+static void calc_vertices(mesh_handle input_mesh, mesh_handle result_mesh) {
   calc_facepoints(input_mesh, result_mesh);
   calc_edgepoints(input_mesh, result_mesh);
   calc_new_vertices(input_mesh, result_mesh);
@@ -99,7 +99,7 @@ hedge_handle HEdge::last_edge_without_pair() const {
 }
 
 
-void Face::split_by_edge(hedge_handle edge, Mesh* mesh) {
+void Face::split_by_edge(hedge_handle edge, mesh_handle mesh) {
   face_handle pf(new Face);
   hedge_handle pe1(new HEdge);
   pe1->vert = facepoint;
@@ -160,9 +160,9 @@ void Face::split_by_edge(hedge_handle edge, Mesh* mesh) {
   mesh->faces.push_back(pf);
 }
 
-static void connect_edges(Mesh& input_mesh,
-                          Mesh* result_mesh) {
-  for (auto& face : input_mesh.faces) {
+static void connect_edges(mesh_handle input_mesh,
+                          mesh_handle result_mesh) {
+  for (auto& face : input_mesh->faces) {
     hedge_handle pe = face->edge;
     do {
       face->split_by_edge(pe, result_mesh);
@@ -171,20 +171,20 @@ static void connect_edges(Mesh& input_mesh,
   }
 }
 
-static void ccsubdivision_core(Mesh& input_mesh,
-                               Mesh* result_mesh) {
+static void ccsubdivision_core(mesh_handle input_mesh,
+                               mesh_handle result_mesh) {
   calc_vertices(input_mesh, result_mesh); 
   connect_edges(input_mesh, result_mesh);
 }
 
 
-void ccsubdivision(Mesh& input_mesh, const size_t n,
-                   Mesh* result_mesh) {
-  std::vector< std::shared_ptr<Mesh> > meshes;
-  meshes.push_back( std::make_shared<Mesh>( input_mesh ) );
+void ccsubdivision(mesh_handle input_mesh, const size_t n,
+                   mesh_handle result_mesh) {
+  std::vector< mesh_handle > meshes;
+  meshes.push_back( input_mesh );
   for (size_t i = 0; i < n; ++i) {
-    std::shared_ptr<Mesh> sp(new Mesh());
-    ccsubdivision_core(*meshes.back(), sp.get());
+    mesh_handle sp(new Mesh());
+    ccsubdivision_core(meshes.back(), sp);
     meshes.push_back(sp); 
   }
 }

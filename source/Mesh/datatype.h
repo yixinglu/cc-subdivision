@@ -18,6 +18,7 @@ class Mesh;
 typedef std::shared_ptr<HEdge> hedge_handle;
 typedef std::shared_ptr<Vertex> vertex_handle;
 typedef std::shared_ptr<Face> face_handle;
+typedef std::shared_ptr<Mesh> mesh_handle;
 
 
 class Vertex {
@@ -40,7 +41,7 @@ public:
   Face() : edge(nullptr), facepoint(nullptr) {}
 
   vertex_handle centerpoint() const;
-  void split_by_edge(hedge_handle edge, Mesh* mesh);
+  void split_by_edge(hedge_handle edge, mesh_handle mesh);
 
   hedge_handle edge;
   vertex_handle facepoint;
@@ -68,7 +69,7 @@ public:
   std::vector< face_handle > faces;
 };
 
-void ccsubdivision(Mesh&, const size_t, Mesh*);
+void ccsubdivision(mesh_handle, const size_t, mesh_handle);
 
 }
 #endif
