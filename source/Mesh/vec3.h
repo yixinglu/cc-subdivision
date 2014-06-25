@@ -2,9 +2,10 @@
 #define CCSUBDIV_MATH_UTIL_H_
 
 #include <assert.h>
-#include <math.h>
 
 namespace ccsubdiv {
+
+#define CCASSERT(d) assert(d > 1.0e-08 || d < -1.0e-08)
 
 template<typename T> class Vec3 {
 public:
@@ -46,7 +47,7 @@ public:
 
   template<typename Ty>
   Vec3& operator /= (const Ty d) {
-    assert(abs((long double)d) > 1.0e-08);
+    CCASSERT(d);
     xyz[0] /= d;
     xyz[1] /= d;
     xyz[2] /= d;
