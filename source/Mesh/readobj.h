@@ -17,12 +17,11 @@ private:
   Reader(const Reader&);
   Reader& operator=(const Reader&);
 
-  void create_face(std::vector<size_t>&);
   void read_vertex(const std::string&);
-  //void read_texture_coord(const std::string&);
   void read_normal(const std::string&);
-  //void read_param_space_vertex(const std::string&);
   void read_face(const std::string&);
+  //void read_param_space_vertex(const std::string&);
+  //void read_texture_coord(const std::string&);
 
   enum LineType {
     COMMENT,
