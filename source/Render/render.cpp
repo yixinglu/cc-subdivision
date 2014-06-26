@@ -1,6 +1,9 @@
 #include "../Mesh/datatype.h"
 #include "../Mesh/readobj.h"
 
+#include <iostream>
+
+/*
 // #define GLUT_DISABLE_ATEXIT_HACK
 #define GLUT_BUILDING_LIB
 #include <Windows.h>
@@ -64,27 +67,27 @@ void mouse(int button, int state, int x, int y) {
   }
 }
 
-
+*/
 using namespace ccsubdiv;
 int main(int argc, char** argv) {
-  glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-  glutInitWindowSize(500, 500);
-  glutInitWindowPosition(100, 100);
-  glutCreateWindow(argv[0]);
-  init();
-  glutDisplayFunc(display);
-  glutReshapeFunc(reshape);
-  glutMouseFunc(mouse);
-  glutMainLoop();
+  //glutInit(&argc, argv);
+  //glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+  //glutInitWindowSize(500, 500);
+  //glutInitWindowPosition(100, 100);
+  //glutCreateWindow(argv[0]);
+  //init();
+  //glutDisplayFunc(display);
+  //glutReshapeFunc(reshape);
+  //glutMouseFunc(mouse);
+  //glutMainLoop();
 
 
 
-/*
+
   Reader reader("E:\\cube.obj");
   mesh_handle mesh = reader.load_obj_file();
   mesh_handle result;
   ccsubdivision(mesh, 1, result);
-*/
+  std::cout << result->faces.size() << std::endl;
   return 0;
 }

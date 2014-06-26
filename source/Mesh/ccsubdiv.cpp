@@ -18,6 +18,7 @@ static void calc_edgepoints(mesh_handle input_mesh, mesh_handle result_mesh) {
   for (auto& edge: input_mesh->edges) {
     vertex_handle vert(new Vertex);
     auto next_edge = edge->next;
+    assert(next_edge);
     vert->coord = next_edge->vert->coord + edge->vert->coord;
     vert->coord += edge->face->facepoint->coord;
     vert->coord += edge->pair->face->facepoint->coord;
