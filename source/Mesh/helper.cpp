@@ -12,12 +12,17 @@ void SubdivHelper::create_face(const std::vector<vertex_handle>& vertices,
 
   face_handle face(new Face);
   std::vector<hedge_handle> edges(vertices.size());
+  for (auto& edge : edges) {
+    edge = hedge_handle(new HEdge);
+  }
   for (size_t i = 0, sz = vertices.size(); i < sz; ++i) {
-    edges[i] = hedge_handle(new HEdge);
     auto ni = (i + 1) % sz;
     if (vertices[i]->edge) {
       if (vertices[ni]->edge) {
         edges[i]->pair = last_edge_without_pair(vertices[i]->edge);
+        if (edges[i]->pair != nullptr) {
+          edges[i]->pair->pair = edges[i];
+        }
       }
     }
     else {
@@ -34,19 +39,17 @@ void SubdivHelper::create_face(const std::vector<vertex_handle>& vertices,
 
 
 hedge_handle SubdivHelper::previous_edge(const hedge_handle& edge) {
-  auto pnext = edge->next;
-  hedge_handle pe;
-  while (pnext != edge) {
-    pe = pnext;
-    assert(pnext);
-    pnext = pnext->next;
+  if (edge == nullptr) return nullptr;
+  auto pe = edge;
+  while (pe && pe->next != edge) {
+    pe = pe->next;
   }
   return pe;
 }
 
 hedge_handle SubdivHelper::last_edge_without_pair(const hedge_handle& edge) {
   auto pe = previous_edge(edge);
-  while (pe) {
+  while (pe && pe->pair) {
     pe = previous_edge(pe->pair);
   }
   return pe;
