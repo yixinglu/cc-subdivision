@@ -6,23 +6,36 @@
 namespace ccsubdiv {
 
 
-void SubdivHelper::create_face(const std::vector<vertex_handle>& vertices,
-                               mesh_handle& mesh) {
+bool SubdivHelper::is_edge_endpt(const hedge_ptr& edge, const vertex_ptr& v1,
+                                 const vertex_ptr& v2) {
+  return (edge && edge->vert == v1 && edge->next && edge->next->vert == v2)
+    || (edge && edge->vert == v2 && edge->next && edge->next->vert == v1);
+}
+
+void SubdivHelper::create_face(const std::vector<vertex_ptr>& vertices,
+                               mesh_ptr& mesh) {
   if (vertices.empty()) return;
 
-  face_handle face(new Face);
-  std::vector<hedge_handle> edges(vertices.size());
+  face_ptr face = std::make_shared<Face>();
+  std::vector<hedge_ptr> edges(vertices.size());
   for (auto& edge : edges) {
-    edge = hedge_handle(new HEdge);
+    edge = std::make_shared<HEdge>();
   }
   for (size_t i = 0, sz = vertices.size(); i < sz; ++i) {
     auto ni = (i + 1) % sz;
     if (vertices[i]->edge) {
-      if (vertices[ni]->edge) {
-        edges[i]->pair = last_edge_without_pair(vertices[i]->edge);
-        if (edges[i]->pair != nullptr) {
-          edges[i]->pair->pair = edges[i];
+      if (vertices[ni]->edge) {/*
+        if (is_edge_endpt(vertices[i]->edge, vertices[i], vertices[ni])) {
+          edges[i]->pair = vertices[i]->edge;
+          vertices[i]->edge->pair = edges[i];
         }
+        else {*/
+          edges[i]->pair = last_edge_without_pair(vertices[i]->edge);
+          if (edges[i]->pair != nullptr) {
+            edges[i]->pair->pair = edges[i];
+          //}
+        }
+
       }
     }
     else {
@@ -38,7 +51,7 @@ void SubdivHelper::create_face(const std::vector<vertex_handle>& vertices,
 }
 
 
-hedge_handle SubdivHelper::previous_edge(const hedge_handle& edge) {
+hedge_ptr SubdivHelper::previous_edge(const hedge_ptr& edge) {
   if (edge == nullptr) return nullptr;
   auto pe = edge;
   while (pe && pe->next != edge) {
@@ -47,7 +60,7 @@ hedge_handle SubdivHelper::previous_edge(const hedge_handle& edge) {
   return pe;
 }
 
-hedge_handle SubdivHelper::last_edge_without_pair(const hedge_handle& edge) {
+hedge_ptr SubdivHelper::last_edge_without_pair(const hedge_ptr& edge) {
   auto pe = previous_edge(edge);
   while (pe && pe->pair) {
     pe = previous_edge(pe->pair);
@@ -57,10 +70,10 @@ hedge_handle SubdivHelper::last_edge_without_pair(const hedge_handle& edge) {
 
 
 
-vertex_handle SubdivHelper::centerpoint(const face_handle& face) {
+vertex_ptr SubdivHelper::centerpoint(const face_ptr& face) {
   auto beg = face->edge;
   size_t sz = 0;
-  vertex_handle cp(new Vertex);
+  vertex_ptr cp = std::make_shared<Vertex>();
   do {
     cp->coord += beg->vert->coord;
     beg = beg->next;
@@ -72,10 +85,10 @@ vertex_handle SubdivHelper::centerpoint(const face_handle& face) {
 
 
 
-void SubdivHelper::split_face_by_edge(const face_handle& face, 
-                                      hedge_handle edge, mesh_handle mesh) {
-  face_handle pf(new Face);
-  hedge_handle pe1(new HEdge);
+void SubdivHelper::split_face_by_edge(const face_ptr& face, 
+                                      hedge_ptr edge, mesh_ptr mesh) {
+  face_ptr pf = std::make_shared<Face>();
+  hedge_ptr pe1 = std::make_shared<HEdge>();
   pe1->vert = face->facepoint;
   assert(pe1->vert != nullptr);
   if (pe1->vert->edge) {
@@ -90,7 +103,7 @@ void SubdivHelper::split_face_by_edge(const face_handle& face,
   pf->edge = pe1;
   mesh->edges.push_back(pe1);
 
-  hedge_handle pe2(new HEdge);
+  hedge_ptr pe2 = std::make_shared<HEdge>();
   pe2->vert = edge->edgepoint;
   assert(pe2->vert);
   if (pe2->vert->edge) {
@@ -105,7 +118,7 @@ void SubdivHelper::split_face_by_edge(const face_handle& face,
   mesh->edges.push_back(pe2);
 
   assert(edge->next);
-  hedge_handle pe3(new HEdge);
+  hedge_ptr pe3 = std::make_shared<HEdge>();
   pe3->vert = edge->next->vert;
   assert(edge->next->edgepoint);
   if (edge->next->edgepoint->edge) {
@@ -120,7 +133,7 @@ void SubdivHelper::split_face_by_edge(const face_handle& face,
   pe2->next = pe3;
   mesh->edges.push_back(pe3);
 
-  hedge_handle pe4(new HEdge);
+  hedge_ptr pe4 = std::make_shared<HEdge>();
   pe4->vert = edge->next->edgepoint;
   if (edge == edge->next) {
     pe4->pair = face->facepoint->edge;
@@ -135,7 +148,7 @@ void SubdivHelper::split_face_by_edge(const face_handle& face,
 }
 
 
-void SubdivHelper::average_of_adjacent_facepoints(const vertex_handle& vert, vertex_handle avg) {
+void SubdivHelper::average_of_adjacent_facepoints(const vertex_ptr& vert, vertex_ptr avg) {
   auto beg = vert->edge;
   size_t sz = 0;
   do {
@@ -146,7 +159,7 @@ void SubdivHelper::average_of_adjacent_facepoints(const vertex_handle& vert, ver
   avg->coord /= sz;
 }
 
-size_t SubdivHelper::average_of_adjacent_edgepoints(const vertex_handle& vert, vertex_handle avg) {
+size_t SubdivHelper::average_of_adjacent_edgepoints(const vertex_ptr& vert, vertex_ptr avg) {
   auto beg = vert->edge;
   size_t sz = 0;
   do {

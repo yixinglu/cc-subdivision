@@ -1,7 +1,7 @@
 #ifndef POINT3_H_INCLUDE
 #define POINT3_H_INCLUDE
 
-#include "GlobalDef.h"
+#include "Define.h"
 
 namespace Subdiv {
 

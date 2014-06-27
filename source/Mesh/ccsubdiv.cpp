@@ -6,7 +6,7 @@ namespace ccsubdiv {
 
 
 
-static void calc_facepoints(mesh_handle input_mesh, mesh_handle result_mesh) {
+static void calc_facepoints(mesh_ptr input_mesh, mesh_ptr result_mesh) {
   for (auto& face: input_mesh->faces) {
     result_mesh->vertices.push_back(SubdivHelper::centerpoint(face)); 
     face->facepoint = result_mesh->vertices.back();
@@ -14,9 +14,9 @@ static void calc_facepoints(mesh_handle input_mesh, mesh_handle result_mesh) {
 }
 
 
-static void calc_edgepoints(mesh_handle input_mesh, mesh_handle result_mesh) {
+static void calc_edgepoints(mesh_ptr input_mesh, mesh_ptr result_mesh) {
   for (auto& edge: input_mesh->edges) {
-    vertex_handle vert(new Vertex);
+    vertex_ptr vert = std::make_shared<Vertex>();
     auto next_edge = edge->next;
     assert(next_edge);
     vert->coord = next_edge->vert->coord + edge->vert->coord;
@@ -29,9 +29,9 @@ static void calc_edgepoints(mesh_handle input_mesh, mesh_handle result_mesh) {
   }
 }
 
-static void calc_new_vertices(mesh_handle input_mesh, mesh_handle result_mesh) {
+static void calc_new_vertices(mesh_ptr input_mesh, mesh_ptr result_mesh) {
   for (auto vert: input_mesh->vertices) {
-    vertex_handle new_vert(new Vertex);
+    vertex_ptr new_vert(new Vertex);
     SubdivHelper::average_of_adjacent_facepoints(vert, new_vert);
     size_t sz = SubdivHelper::average_of_adjacent_edgepoints(vert, new_vert);
     new_vert->coord += vert->coord * (sz - 3);
@@ -41,17 +41,17 @@ static void calc_new_vertices(mesh_handle input_mesh, mesh_handle result_mesh) {
   }
 }
 
-static void calc_vertices(mesh_handle input_mesh, mesh_handle result_mesh) {
+static void calc_vertices(mesh_ptr input_mesh, mesh_ptr result_mesh) {
   calc_facepoints(input_mesh, result_mesh);
   calc_edgepoints(input_mesh, result_mesh);
   calc_new_vertices(input_mesh, result_mesh);
 }
 
 
-static void connect_edges(mesh_handle input_mesh,
-                          mesh_handle result_mesh) {
+static void connect_edges(mesh_ptr input_mesh,
+                          mesh_ptr result_mesh) {
   for (auto& face : input_mesh->faces) {
-    hedge_handle pe = face->edge;
+    hedge_ptr pe = face->edge;
     do {
       SubdivHelper::split_face_by_edge(face, pe, result_mesh);
       pe = pe->next;
@@ -59,12 +59,12 @@ static void connect_edges(mesh_handle input_mesh,
   }
 }
 
-static void connect_edges2(mesh_handle input_mesh,
-                           mesh_handle result_mesh) {
+static void connect_edges2(mesh_ptr input_mesh,
+                           mesh_ptr result_mesh) {
   for (auto& face : input_mesh->faces) {
-    hedge_handle pe = face->edge;
+    hedge_ptr pe = face->edge;
     do {
-      std::vector<vertex_handle> vertices;
+      std::vector<vertex_ptr> vertices;
       vertices.push_back(face->facepoint);
       vertices.push_back(pe->edgepoint);
       pe = pe->next;
@@ -75,19 +75,19 @@ static void connect_edges2(mesh_handle input_mesh,
   }
 }
 
-static void ccsubdivision_core(mesh_handle input_mesh,
-                               mesh_handle result_mesh) {
+static void ccsubdivision_core(mesh_ptr input_mesh,
+                               mesh_ptr result_mesh) {
   calc_vertices(input_mesh, result_mesh); 
   connect_edges2(input_mesh, result_mesh);
 }
 
 
-void ccsubdivision(mesh_handle input_mesh, const size_t n,
-                   mesh_handle result_mesh) {
-  std::vector< mesh_handle > meshes;
+void ccsubdivision(mesh_ptr input_mesh, const size_t n,
+                   mesh_ptr result_mesh) {
+  std::vector< mesh_ptr > meshes;
   meshes.push_back( input_mesh );
   for (size_t i = 0; i < n; ++i) {
-    mesh_handle sp(new Mesh());
+    mesh_ptr sp = std::make_shared<Mesh>();
     ccsubdivision_core(meshes.back(), sp);
     meshes.push_back(sp); 
   }

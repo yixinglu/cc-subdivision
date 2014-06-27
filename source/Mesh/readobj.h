@@ -11,7 +11,7 @@ class Reader {
 public:
   explicit Reader(const char* filename) : ifs(filename), mesh(new Mesh) {}
   ~Reader() { ifs.close(); }
-  mesh_handle load_obj_file();
+  mesh_ptr load_obj_file();
 
 private:
   Reader(const Reader&);
@@ -35,7 +35,7 @@ private:
   static LineType get_line_type(const std::string&);
 
   std::ifstream ifs;
-  mesh_handle mesh;
+  mesh_ptr mesh;
   std::vector<vec3d> normals;
 };
 

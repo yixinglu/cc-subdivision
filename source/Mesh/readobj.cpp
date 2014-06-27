@@ -19,7 +19,7 @@ void Reader::read_vertex(const std::string& line) {
     assert(w > 1.0e-08 || w < -1.0e-08);
     x /= w; y /= w; z /= w;
   }
-  vertex_handle vert(new Vertex);
+  vertex_ptr vert = std::make_shared<Vertex>();
   vert->coord = vec3d(x, y, z);
   mesh->vertices.push_back(vert);
 }
@@ -37,7 +37,7 @@ void Reader::read_normal(const std::string& line) {
 void Reader::read_face(const std::string& line) {
   std::stringstream sstr(line);
   char f; sstr >> f;
-  std::vector<vertex_handle> vertices;
+  std::vector<vertex_ptr> vertices;
   std::string vert;
   while (sstr >> vert) {
     size_t id = 0, id2 = 0;
@@ -100,7 +100,7 @@ Reader::LineType Reader::get_line_type(const std::string& str){
   return COMMENT;
 }
 
-mesh_handle Reader::load_obj_file() {
+mesh_ptr Reader::load_obj_file() {
   if (!ifs.is_open()) return nullptr;
   std::string line;
   while (std::getline(ifs, line)) {

@@ -1,7 +1,6 @@
 #ifndef VECTOR3_H_INCLUDE
 #define VECTOR3_H_INCLUDE
 
-#include "GlobalDef.h"
 #include "Point3.h"
 
 namespace Subdiv {
