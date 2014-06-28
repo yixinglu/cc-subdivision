@@ -66,7 +66,8 @@ void MeshMgr::connect_edges() {
 mesh_ptr MeshMgr::ccsubdiv(size_t n) {
   size_t sz = n + meshes.size();
   meshes.reserve(sz);
-  for (; current_mesh < sz-1; ++current_mesh) {
+  for (current_mesh = meshes.size()-1;
+       current_mesh < sz-1; ++current_mesh) {
     meshes.push_back(std::make_shared<Mesh>());
     calc_facepoints();
     calc_edgepoints();
