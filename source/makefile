@@ -1,20 +1,23 @@
-OBJECTS = test.o Vertex.o Edge.o
-vpath % ../Mesh/
-test : $(OBJECTS)
-	g++ -o test $(OBJECTS)
+OBJECTS = ccsubdiv.obj helper.obj main.obj readobj.obj
+vpath % ./
+ccsubdiv : $(OBJECTS)
+	g++ -o ccsubdiv $(OBJECTS)
 
-test.o : test.cpp Vector3.h Vertex.h
-	g++ -c test.cpp
+ccsubdiv.obj : ccsubdiv.cpp datatype.h helper.h
+	g++ -c ccsubdiv.cpp
 
-Vertex.o : Vertex.cpp Vector3.h Point3.h
-	g++ -c ../Mesh/Vertex.cpp
+helper.obj : helper.cpp helper.h 
+	g++ -c helper.cpp
 
-Edge.o : Edge.cpp Edge.h
-	g++ -c ../Mesh/Edge.cpp
+main.obj : main.cpp datatype.h readobj.h
+	g++ -c main.cpp
+
+readobj.obj : readobj.cpp helper.h
+	g++ -c readobj.cpp
 
 .PHONY : cleanall
 cleanall :
-	-rm -f *.o test
+	-rm -f *.o ccsubdiv
 
 .PHONY : cleanobj
 cleanobj :
