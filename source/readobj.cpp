@@ -16,7 +16,7 @@ void Reader::read_vertex(const std::string& line) {
   sstr >> v >> x >> y >> z;
   if (!sstr.eof()) {
     sstr >> w;
-    assert(w > 1.0e-08 || w < -1.0e-08);
+    CCASSERT(w);
     x /= w; y /= w; z /= w;
   }
   vertex_ptr vert = std::make_shared<Vertex>();

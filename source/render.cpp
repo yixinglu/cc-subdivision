@@ -1,15 +1,9 @@
-#include "../Mesh/datatype.h"
-#include "../Mesh/readobj.h"
+#include "datatype.h"
+#include "readobj.h"
 
 #include <iostream>
 
-/*
-// #define GLUT_DISABLE_ATEXIT_HACK
-#define GLUT_BUILDING_LIB
-#include <Windows.h>
-#include <gl/GL.h>
-#include <gl/GLU.h>
-#include <gl/glut.h>
+#include <gl/freeglut.h>
 
 static int spin = 0;
 
@@ -67,27 +61,27 @@ void mouse(int button, int state, int x, int y) {
   }
 }
 
-*/
+
+
 using namespace ccsubdiv;
 int main(int argc, char** argv) {
-  //glutInit(&argc, argv);
-  //glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-  //glutInitWindowSize(500, 500);
-  //glutInitWindowPosition(100, 100);
-  //glutCreateWindow(argv[0]);
-  //init();
-  //glutDisplayFunc(display);
-  //glutReshapeFunc(reshape);
-  //glutMouseFunc(mouse);
-  //glutMainLoop();
-
-
+  glutInit(&argc, argv);
+  glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+  glutInitWindowSize(500, 500);
+  glutInitWindowPosition(100, 100);
+  glutCreateWindow(argv[0]);
+  init();
+  glutDisplayFunc(display);
+  glutReshapeFunc(reshape);
+  glutMouseFunc(mouse);
+  glutMainLoop();
 
 
   Reader reader("E:\\cube.obj");
-  mesh_handle mesh = reader.load_obj_file();
-  mesh_handle result;
-  ccsubdivision(mesh, 1, result);
+  mesh_ptr mesh = reader.load_obj_file();
+  MeshMgr mesh_mgr(mesh);
+  mesh_ptr result = mesh_mgr.ccsubdiv(1);
   std::cout << result->faces.size() << std::endl;
+  std::cout << mesh_mgr.previous_mesh()->faces.size() << std::endl;
   return 0;
 }

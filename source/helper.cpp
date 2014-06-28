@@ -21,10 +21,12 @@ void SubdivHelper::create_face(std::vector<vertex_ptr>& vertices,
   const size_t sz = vertices.size();
   std::vector<hedge_ptr> edges(sz);
 
+  mesh->edges.reserve(mesh->edges.size() + sz);
   for (size_t i = 0; i < sz; ++i) {
     edges[i] = std::make_shared<HEdge>();
     edges[i]->vert = vertices[i];
     edges[i]->face = face;
+    mesh->edges.push_back(edges[i]);
   }
 
   for (size_t i = 0; i < sz; ++i) {
@@ -44,7 +46,6 @@ void SubdivHelper::create_face(std::vector<vertex_ptr>& vertices,
     }
   }
   face->edge = edges[0];
-  mesh->edges.insert(mesh->edges.end(), edges.begin(), edges.end());
   mesh->faces.push_back(face);
 }
 

@@ -2,15 +2,14 @@
 #define CCSUBDIV_MATH_UTIL_H_
 
 #include <assert.h>
-#include <sstream>
-#include <string>
 
 namespace ccsubdiv {
 
+#define EPSILON 1.0e-08
 #define CCASSERT(d) assert(!is_zero(d))
 
 template<typename T> bool is_zero(T t) {
-  return -1.0e-08 < t && t < 1.0e-08;
+  return -EPSILON < t && t < EPSILON;
 }
 
 template<typename T> class Vec3 {
@@ -65,12 +64,6 @@ public:
       && is_zero(xyz[2] - v.xyz[2]);
   }
 
-  std::string to_string() const {
-    std::stringstream ss;
-    ss << "[" << xyz[0] << ", " << xyz[1] << ", "
-       << xyz[2] << "]";
-    return ss.str();
-  }
 
 private:
   void assign(const T coord[3]) {
