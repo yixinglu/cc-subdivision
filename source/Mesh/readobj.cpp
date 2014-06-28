@@ -38,6 +38,7 @@ void Reader::read_face(const std::string& line) {
   std::stringstream sstr(line);
   char f; sstr >> f;
   std::vector<vertex_ptr> vertices;
+  std::vector<size_t> vids;
   std::string vert;
   while (sstr >> vert) {
     size_t id = 0, id2 = 0;
@@ -48,6 +49,7 @@ void Reader::read_face(const std::string& line) {
       // f v1 v2 v3 ...
       ss >> id;
       vertices.push_back(mesh->vertices[id-1]);
+      vids.push_back(id);
     }
     else {
       auto pos1 = vert.find_first_of("/", pos + 1);
@@ -55,6 +57,7 @@ void Reader::read_face(const std::string& line) {
         // f v1/vt1 v2/vt2 v3/vt3 ...
         ss >> id;
         vertices.push_back(mesh->vertices[id-1]);
+        vids.push_back(id);
         ss >> slash >> id;
       }
       else {
@@ -63,6 +66,7 @@ void Reader::read_face(const std::string& line) {
           ss >> id;
           assert(id - 1 < mesh->vertices.size());
           vertices.push_back(mesh->vertices[id - 1]);
+          vids.push_back(id);
           ss >> slash >> slash >> id2;
           mesh->vertices[id - 1]->norm = normals[id2 - 1];
         }
@@ -71,6 +75,7 @@ void Reader::read_face(const std::string& line) {
           ss >> id;
           assert(id - 1 < mesh->vertices.size());
           vertices.push_back(mesh->vertices[id - 1]);
+          vids.push_back(id);
           ss >> slash >> id2 >> slash >> id2;
           mesh->vertices[id - 1]->norm = normals[id2 - 1];
         }

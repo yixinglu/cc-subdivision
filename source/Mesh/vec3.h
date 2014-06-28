@@ -2,10 +2,16 @@
 #define CCSUBDIV_MATH_UTIL_H_
 
 #include <assert.h>
+#include <sstream>
+#include <string>
 
 namespace ccsubdiv {
 
-#define CCASSERT(d) assert(d > 1.0e-08 || d < -1.0e-08)
+#define CCASSERT(d) assert(!is_zero(d))
+
+template<typename T> bool is_zero(T t) {
+  return -1.0e-08 < t && t < 1.0e-08;
+}
 
 template<typename T> class Vec3 {
 public:
@@ -54,6 +60,18 @@ public:
     return *this;
   }
 
+  bool operator == (const Vec3& v) {
+    return is_zero(xyz[0] - v.xyz[0]) && is_zero(xyz[1] - v.xyz[1])
+      && is_zero(xyz[2] - v.xyz[2]);
+  }
+
+  std::string to_string() const {
+    std::stringstream ss;
+    ss << "[" << xyz[0] << ", " << xyz[1] << ", "
+       << xyz[2] << "]";
+    return ss.str();
+  }
+
 private:
   void assign(const T coord[3]) {
     xyz[0] = coord[0];
@@ -75,7 +93,6 @@ Vec3<T> operator * (const Vec3<T>& v1, const Ty d) {
   Vec3<T> v; v *= d;
   return v;
 }
-
 
 typedef Vec3<double> vec3d;
 
