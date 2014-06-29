@@ -1,5 +1,5 @@
 OBJECTS = ccsubdiv.obj helper.obj main.obj readobj.obj
-vpath % ./
+vpath % ./source
 ccsubdiv : $(OBJECTS)
 	g++ -o ccsubdiv $(OBJECTS)
 
