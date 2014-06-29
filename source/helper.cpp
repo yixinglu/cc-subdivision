@@ -74,35 +74,55 @@ vertex_ptr SubdivHelper::centerpoint(const face_ptr& face) {
   vertex_ptr cp = std::make_shared<Vertex>();
   do {
     cp->coord += beg->vert->coord;
+    cp->norm += beg->vert->norm;
     beg = beg->next;
     ++sz;
   } while (beg != face->edge);
   cp->coord /= sz;
+  cp->norm /= sz;
   return cp;
 }
 
 
-void SubdivHelper::average_of_adjacent_facepoints(const vertex_ptr& vert, vertex_ptr avg) {
+void SubdivHelper::average_of_adjacent_facepoints(const vertex_ptr& vert,
+                                                  vertex_ptr avg) {
   auto beg = vert->edge;
   size_t sz = 0;
   do {
     avg->coord += beg->face->facepoint->coord;
+    avg->norm += beg->face->facepoint->norm;
     beg = beg->pair->next;
     ++sz;
   } while (beg != vert->edge);
   avg->coord /= sz;
+  avg->norm /= sz;
 }
 
-size_t SubdivHelper::average_of_adjacent_edgepoints(const vertex_ptr& vert, vertex_ptr avg) {
+size_t SubdivHelper::average_of_adjacent_edgepoints(const vertex_ptr& vert,
+                                                    vertex_ptr avg) {
   auto beg = vert->edge;
   size_t sz = 0;
   do {
     avg->coord += beg->edgepoint->coord;
+    avg->norm += beg->edgepoint->norm;
     beg = beg->pair->next;
     ++sz;
   } while (beg != vert->edge);
   avg->coord /= sz * 0.5;
+  avg->norm /= sz * 0.5;
   return sz;
+}
+
+void SubdivHelper::boundingbox_xyz(const vec3d& in,
+                                   vec3d* min, vec3d* max) {
+  for (size_t i = 0; i < 3; ++i) {
+    if ((*max)[i] < in[i]) {
+      (*max)[i] = in[i];
+    }
+    if ((*min)[i] > in[i]) {
+      (*min)[i] = in[i];
+    }
+  }
 }
 
 

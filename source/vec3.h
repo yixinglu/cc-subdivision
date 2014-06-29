@@ -15,7 +15,7 @@ template<typename T> bool is_zero(T t) {
 template<typename T> class Vec3 {
 public:
   Vec3(const T x = 0, const T y = 0, const T z = 0) {
-    xyz[0] = x; xyz[1] = y; xyz[2] = z;
+    _xyz[0] = x; _xyz[1] = y; _xyz[2] = z;
   }
 
   Vec3(const T coord[3]) {
@@ -24,55 +24,69 @@ public:
 
   Vec3(const Vec3& v) {
     if (this != &v) {
-      assign(v.xyz);
+      assign(v._xyz);
     }
+  }
+
+  const T* xyz() const {
+    return _xyz;
   }
 
   Vec3& operator = (const Vec3& v) {
     if (this != &v) {
-      assign(v.xyz);
+      assign(v._xyz);
     }
     return *this;
   }
 
+  const T operator[](size_t dim) const {
+    assert(dim >= 0 && dim < 3);
+    return _xyz[dim];
+  }
+
+  T& operator[](size_t dim) {
+    assert(dim >= 0 && dim < 3);
+    return _xyz[dim];
+  }
+
   Vec3& operator += (const Vec3& v) {
-    xyz[0] += v.xyz[0];
-    xyz[1] += v.xyz[1];
-    xyz[2] += v.xyz[2];
+    _xyz[0] += v._xyz[0];
+    _xyz[1] += v._xyz[1];
+    _xyz[2] += v._xyz[2];
     return *this;
   }
 
   template<typename Ty>
   Vec3& operator *= (const Ty d) {
-    xyz[0] *= d;
-    xyz[1] *= d;
-    xyz[2] *= d;
+    _xyz[0] *= d;
+    _xyz[1] *= d;
+    _xyz[2] *= d;
     return *this;
   }
 
   template<typename Ty>
   Vec3& operator /= (const Ty d) {
     CCASSERT(d);
-    xyz[0] /= d;
-    xyz[1] /= d;
-    xyz[2] /= d;
+    _xyz[0] /= d;
+    _xyz[1] /= d;
+    _xyz[2] /= d;
     return *this;
   }
 
   bool operator == (const Vec3& v) {
-    return is_zero(xyz[0] - v.xyz[0]) && is_zero(xyz[1] - v.xyz[1])
-      && is_zero(xyz[2] - v.xyz[2]);
+    return is_zero(_xyz[0] - v._xyz[0]) && is_zero(_xyz[1] - v._xyz[1])
+      && is_zero(_xyz[2] - v._xyz[2]);
   }
 
 
 private:
   void assign(const T coord[3]) {
-    xyz[0] = coord[0];
-    xyz[1] = coord[1];
-    xyz[2] = coord[2];
+    _xyz[0] = coord[0];
+    _xyz[1] = coord[1];
+    _xyz[2] = coord[2];
   }
 
-  T xyz[3];
+  T _xyz[3];
 };
 
 template<typename T>
@@ -81,11 +95,29 @@ Vec3<T> operator + (const Vec3<T>& v1, const Vec3<T>& v2) {
   return v;
 }
 
+template<typename T>
+Vec3<T> operator - (const Vec3<T>& v1, const Vec3<T>& v2) {
+  return v1 + (v2 * (-1));
+}
+
 template<typename T, typename Ty>
 Vec3<T> operator * (const Vec3<T>& v1, const Ty d) {
-  Vec3<T> v; v *= d;
+  Vec3<T> v(v1); v *= d;
   return v;
 }
+
+template<typename T>
+double dot_prod (const Vec3<T>& v1, const Vec3<T>& v2) {
+  return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+}
+
+template<typename T>
+Vec3<T> cross_prod(const Vec3<T>& v1, const Vec3<T>& v2) {
+  return Vec3<T>(v1[1] * v2[2] - v1[2] * v2[1],
+                 v1[2] * v2[0] - v1[0] * v2[2],
+                 v1[0] * v2[1] - v1[1] * v2[0]);
+}
+
 
 typedef Vec3<double> vec3d;
 

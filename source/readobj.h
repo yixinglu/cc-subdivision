@@ -12,6 +12,7 @@ public:
   explicit Reader(const char* filename) : ifs(filename), mesh(new Mesh) {}
   ~Reader() { ifs.close(); }
   mesh_ptr load_obj_file();
+  bool is_open() const { return ifs.is_open(); }
 
 private:
   Reader(const Reader&);

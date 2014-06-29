@@ -5,7 +5,26 @@
 
 #include <gl/freeglut.h>
 
+using namespace ccsubdiv;
+mesh_ptr mesh;
+std::shared_ptr<MeshMgr> mesh_mgr_ptr;
+
+
 static int spin = 0;
+static bool hrotate = false;
+const double eyez = 5.0;
+static double rotate_direction[3] = { 0.0, 1.0, 0.0 };
+
+
+double compute_fovy() {
+  auto vdiff = mesh->boundingbox[1] - mesh->boundingbox[0];
+  auto center = vdiff * 0.5;
+  vec3d eye(0.0, 0.0, eyez);
+  double distance = sqrt(dot_prod(eye, center));
+  double diag_len = sqrt(dot_prod(vdiff, vdiff));
+  return 2.0*atan2(diag_len / 4.0, distance) * 180 / 3.14159265;
+}
+
 
 void init() {
   glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -16,24 +35,35 @@ void init() {
 }
 
 void display() {
-  GLfloat position[] = { 0.0, 0.0, 1.5, 1.0 };
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glPushMatrix();
-  glTranslatef(0.0, 0.0, -5.0);
-
-  glPushMatrix();
-  glRotated((GLdouble)spin, 1.0, 0.0, 0.0);
+  GLfloat position[] = { 0.0, 0.0, 10.5, 10.0 };
   glLightfv(GL_LIGHT0, GL_POSITION, position);
 
-  glTranslated(0.0, 0.0, 1.5);
-  glDisable(GL_LIGHTING);
-  glColor3f(0.0, 1.0, 1.0);
-  glutWireCube(0.1);
-  glEnable(GL_LIGHTING);
-  glPopMatrix();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glColor3f(1.0, 1.0, 1.0);
 
-  glutSolidTorus(0.275, 0.85, 8, 15);
+  auto vdiff = mesh->boundingbox[1] - mesh->boundingbox[0];
+  auto center = vdiff * 0.5;
+
+  glPushMatrix();
+  glTranslated(0.0, 0.0, -center[2] - eyez);
+  glRotated((GLdouble)spin, rotate_direction[0],
+            rotate_direction[1], rotate_direction[2]);
+  glTranslated(-center[0], -center[1], -center[2]);
+
+
+  if (mesh) {
+    for (auto & edge : mesh->edges) {
+      auto& v1 = edge->vert;
+      auto& v2 = edge->next->vert;
+      glBegin(GL_LINES);
+      glNormal3dv(v1->norm.xyz());
+      glVertex3dv(v1->coord.xyz());
+      glNormal3dv(v2->norm.xyz());
+      glVertex3dv(v2->coord.xyz());
+      glEnd();
+    }
+  }
+
   glPopMatrix();
   glFlush();
 }
@@ -42,19 +72,55 @@ void reshape(int w, int h) {
   glViewport(0, 0, (GLsizei)w, (GLsizei)h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(40.0, (GLfloat)w / (GLfloat)h, 1.0, 20.0);
+  static double fovy = compute_fovy();
+  gluPerspective(fovy, (GLfloat)w / (GLfloat)h, 1, 100.0);
   glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
 }
 
-void mouse(int button, int state, int x, int y) {
-  switch (button)
+void change_rotate_control(double x, double y, double z,
+                           bool anticlock = true) {
+  if (anticlock) {
+    spin = (spin + 30) % 360;
+  }
+  else {
+    spin = (spin - 30) % 360;
+  }
+  rotate_direction[0] = x;
+  rotate_direction[1] = y;
+  rotate_direction[2] = z;
+  glutPostRedisplay();
+}
+
+void press_arrow_key(int key, int, int) {
+  switch (key)
   {
-  case GLUT_LEFT_BUTTON:
-    if (state == GLUT_DOWN) {
-      spin = (spin + 30) % 360;
-      glutPostRedisplay();
-    }
+  case GLUT_KEY_LEFT:
+    change_rotate_control(0, 1, 0, false);
+    break;
+  case GLUT_KEY_RIGHT:
+    change_rotate_control(0, 1, 0);
+    break;
+  case GLUT_KEY_UP:
+    change_rotate_control(1, 0, 0, false);
+    break;
+  case GLUT_KEY_DOWN:
+    change_rotate_control(1, 0, 0);
+    break;
+  default: break;
+  }
+}
+
+void press_key(unsigned char key, int, int) {
+  if (!mesh_mgr_ptr) return;
+  switch (key)
+  {
+  case 'c':
+    mesh = mesh_mgr_ptr->ccsubdiv();
+    glutPostRedisplay();
+    break;
+  case 'u':
+    mesh = mesh_mgr_ptr->previous_mesh();
+    glutPostRedisplay();
     break;
   default:
     break;
@@ -62,9 +128,22 @@ void mouse(int button, int state, int x, int y) {
 }
 
 
-
-using namespace ccsubdiv;
 int main(int argc, char** argv) {
+
+  if (argc != 2) {
+    std::cerr << "Usage: ccsubdiv \"file.obj\"" << std::endl;
+    return 1;
+  }
+
+  Reader reader(argv[1]);
+  if (!reader.is_open()) {
+    std::cerr << "Can not open " << argv[1] << std::endl;
+    return 1;
+  }
+
+  mesh = reader.load_obj_file();
+  mesh_mgr_ptr = std::make_shared<MeshMgr>(mesh);
+
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
   glutInitWindowSize(500, 500);
@@ -73,15 +152,9 @@ int main(int argc, char** argv) {
   init();
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
-  glutMouseFunc(mouse);
+  glutKeyboardFunc(press_key);
+  glutSpecialFunc(press_arrow_key); // arrow key
   glutMainLoop();
 
-
-  Reader reader("E:\\cube.obj");
-  mesh_ptr mesh = reader.load_obj_file();
-  MeshMgr mesh_mgr(mesh);
-  mesh_ptr result = mesh_mgr.ccsubdiv(1);
-  std::cout << result->faces.size() << std::endl;
-  std::cout << mesh_mgr.previous_mesh()->faces.size() << std::endl;
   return 0;
 }

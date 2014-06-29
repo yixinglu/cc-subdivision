@@ -46,6 +46,9 @@ struct Mesh {
   std::vector< vertex_ptr > vertices;
   std::vector< hedge_ptr > edges;
   std::vector< face_ptr > faces;
+
+  // boundingbox low and high coordinate
+  vec3d boundingbox[2];
 };
 
 
@@ -55,14 +58,18 @@ public:
     meshes.push_back(mesh);
   }
 
-  mesh_ptr ccsubdiv(size_t);
+  mesh_ptr ccsubdiv(size_t = 1);
   mesh_ptr previous_mesh() {
-    assert(current_mesh >= 1);
-    return meshes[--current_mesh];
+    if (current_mesh > 0) {
+      return meshes[--current_mesh];
+    }
+    return meshes[0];
   }
   mesh_ptr post_mesh() {
-    assert(current_mesh <= meshes.size() - 1);
-    return meshes[++current_mesh];
+    if (current_mesh < meshes.size()-1) {
+      return meshes[++current_mesh];
+    }
+    return ccsubdiv(1);
   }
 
 private:
