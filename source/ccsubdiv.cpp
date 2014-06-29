@@ -13,8 +13,8 @@ void MeshMgr::calc_facepoints() {
   for (auto& face : meshes[current_mesh]->faces) {
     meshes[next_mesh]->vertices.push_back(SubdivHelper::centerpoint(face));
     face->facepoint = meshes[next_mesh]->vertices.back();
-    SubdivHelper::boundingbox_xyz(face->facepoint->coord, &meshes[next_mesh]->boundingbox[0],
-                                  &meshes[next_mesh]->boundingbox[1]);
+    SubdivHelper::boundingbox_xyz(face->facepoint->coord,
+      &meshes[next_mesh]->boundingbox[0], &meshes[next_mesh]->boundingbox[1]);
   }
 }
 
@@ -38,8 +38,8 @@ void MeshMgr::calc_edgepoints() {
     meshes[next_mesh]->vertices.push_back(vert);
     edge->edgepoint = edge->pair->edgepoint
                     = meshes[next_mesh]->vertices.back();
-    SubdivHelper::boundingbox_xyz(vert->coord, &meshes[next_mesh]->boundingbox[0],
-                                  &meshes[next_mesh]->boundingbox[1]);
+    SubdivHelper::boundingbox_xyz(vert->coord,
+      &meshes[next_mesh]->boundingbox[0], &meshes[next_mesh]->boundingbox[1]);
   }
 }
 
@@ -56,8 +56,8 @@ void MeshMgr::calc_newpoints() {
     new_vert->norm /= sz;
     meshes[next_mesh]->vertices.push_back(new_vert);
     vert->newpoint = meshes[next_mesh]->vertices.back();
-    SubdivHelper::boundingbox_xyz(new_vert->coord, &meshes[next_mesh]->boundingbox[0],
-                                  &meshes[next_mesh]->boundingbox[1]);
+    SubdivHelper::boundingbox_xyz(new_vert->coord,
+      &meshes[next_mesh]->boundingbox[0], &meshes[next_mesh]->boundingbox[1]);
   }
 }
 

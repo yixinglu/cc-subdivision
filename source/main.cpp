@@ -6,13 +6,12 @@
 #include <gl/freeglut.h>
 
 using namespace ccsubdiv;
-mesh_ptr mesh;
-std::shared_ptr<MeshMgr> mesh_mgr_ptr;
 
+static mesh_ptr mesh;
+static std::shared_ptr<MeshMgr> mesh_mgr_ptr;
 
-static int spin = 0;
-static bool hrotate = false;
 const double eyez = 5.0;
+static int spin = 0;
 static double rotate_direction[3] = { 0.0, 1.0, 0.0 };
 
 
@@ -36,7 +35,6 @@ void init() {
 
 void display() {
   GLfloat position[] = { 0.0, 0.0, 10.5, 10.0 };
-  glLightfv(GL_LIGHT0, GL_POSITION, position);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glColor3f(1.0, 1.0, 1.0);
@@ -50,6 +48,7 @@ void display() {
             rotate_direction[1], rotate_direction[2]);
   glTranslated(-center[0], -center[1], -center[2]);
 
+  glLightfv(GL_LIGHT0, GL_POSITION, position);
 
   if (mesh) {
     for (auto & edge : mesh->edges) {
