@@ -79,16 +79,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\source\datatype.h" />
-    <ClInclude Include="..\..\source\helper.h" />
-    <ClInclude Include="..\..\source\readobj.h" />
-    <ClInclude Include="..\..\source\vec3.h" />
+    <ClInclude Include="..\source\datatype.h" />
+    <ClInclude Include="..\source\helper.h" />
+    <ClInclude Include="..\source\readobj.h" />
+    <ClInclude Include="..\source\vec3.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\source\ccsubdiv.cpp" />
-    <ClCompile Include="..\..\source\helper.cpp" />
-    <ClCompile Include="..\..\source\main.cpp" />
-    <ClCompile Include="..\..\source\readobj.cpp" />
+    <ClCompile Include="..\source\ccsubdiv.cpp" />
+    <ClCompile Include="..\source\helper.cpp" />
+    <ClCompile Include="..\source\main.cpp" />
+    <ClCompile Include="..\source\readobj.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
