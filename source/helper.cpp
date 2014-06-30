@@ -95,6 +95,7 @@ size_t SubdivHelper::average_facepoints(const vertex_ptr& vert,
     ++sz;
   } while (beg != vert->edge);
   (*avg)->coord /= sz;
+  (*avg)->norm /= sz;
   return sz;
 }
 
