@@ -1,7 +1,7 @@
 OBJECTS = ccsubdiv.obj helper.obj main.obj readobj.obj
 vpath % ./source
-ccsubdiv : $(OBJECTS)
-	g++ -o ccsubdiv $(OBJECTS)
+ccsubd : $(OBJECTS)
+	g++ -o ccsubd $(OBJECTS)
 
 ccsubdiv.obj : ccsubdiv.cpp datatype.h helper.h
 	g++ -c ccsubdiv.cpp
@@ -17,7 +17,7 @@ readobj.obj : readobj.cpp helper.h
 
 .PHONY : cleanall
 cleanall :
-	-rm -f *.o ccsubdiv
+	-rm -f *.o ccsubd
 
 .PHONY : cleanobj
 cleanobj :

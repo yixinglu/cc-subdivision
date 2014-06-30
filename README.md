@@ -8,7 +8,7 @@ The source includes following knowledge:
 * obj file reading implementation.
 
 Usage:
-
+* `ccsubd filename.obj`
 * up/down/left/right arrow key -> up/down/left/right rotation
 * c key -> subdivison one time
 * u key -> previous mesh
