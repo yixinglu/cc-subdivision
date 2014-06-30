@@ -6,3 +6,9 @@ The source includes following knowledge:
 * C++11 syntax and shared_ptr.
 * freeglut opengl library.
 * obj file reading implementation.
+
+Usage:
+
+* up/down/left/right arrow key -> up/down/left/right rotation
+* c key -> subdivison one time
+* u key -> previous mesh
