@@ -42,13 +42,13 @@ void display() {
   auto vdiff = mesh->boundingbox[1] - mesh->boundingbox[0];
   auto center = vdiff * 0.5;
 
+  glLightfv(GL_LIGHT0, GL_POSITION, position);
+
   glPushMatrix();
   glTranslated(0.0, 0.0, -center[2] - eyez);
   glRotated((GLdouble)spin, rotate_direction[0],
             rotate_direction[1], rotate_direction[2]);
   glTranslated(-center[0], -center[1], -center[2]);
-
-  glLightfv(GL_LIGHT0, GL_POSITION, position);
 
   if (mesh) {
     for (auto & edge : mesh->edges) {
@@ -71,13 +71,13 @@ void reshape(int w, int h) {
   glViewport(0, 0, (GLsizei)w, (GLsizei)h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  static double fovy = compute_fovy();
+  double fovy = compute_fovy();
   gluPerspective(fovy, (GLfloat)w / (GLfloat)h, 1, 100.0);
   glMatrixMode(GL_MODELVIEW);
 }
 
-void change_rotate_control(double x, double y, double z,
-                           bool anticlock = true) {
+void control_rotation(double x, double y, double z,
+                      bool anticlock = true) {
   if (anticlock) {
     spin = (spin + 30) % 360;
   }
@@ -94,16 +94,16 @@ void press_arrow_key(int key, int, int) {
   switch (key)
   {
   case GLUT_KEY_LEFT:
-    change_rotate_control(0, 1, 0, false);
+    control_rotation(0, 1, 0, false);
     break;
   case GLUT_KEY_RIGHT:
-    change_rotate_control(0, 1, 0);
+    control_rotation(0, 1, 0);
     break;
   case GLUT_KEY_UP:
-    change_rotate_control(1, 0, 0, false);
+    control_rotation(1, 0, 0, false);
     break;
   case GLUT_KEY_DOWN:
-    change_rotate_control(1, 0, 0);
+    control_rotation(1, 0, 0);
     break;
   default: break;
   }

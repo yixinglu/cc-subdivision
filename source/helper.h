@@ -14,8 +14,8 @@ public:
   static hedge_ptr previous_edge(const hedge_ptr&);
   static hedge_ptr last_edge_without_pair(const hedge_ptr&);
   static vertex_ptr centerpoint(const face_ptr&);
-  static size_t average_of_adjacent_edgepoints(const vertex_ptr& vert, vertex_ptr avg);
-  static void average_of_adjacent_facepoints(const vertex_ptr&, vertex_ptr);
+  static size_t average_mid_edges(const vertex_ptr& , vertex_ptr*);
+  static size_t average_facepoints(const vertex_ptr&, vertex_ptr*);
   static void boundingbox_xyz(const vec3d& in, vec3d* max, vec3d* min);
 };
 

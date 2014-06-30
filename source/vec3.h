@@ -56,21 +56,16 @@ public:
     return *this;
   }
 
-  template<typename Ty>
-  Vec3& operator *= (const Ty d) {
-    _xyz[0] *= d;
-    _xyz[1] *= d;
-    _xyz[2] *= d;
+  Vec3& operator *= (const T d) {
+    _xyz[0] *= static_cast<T>(d);
+    _xyz[1] *= static_cast<T>(d);
+    _xyz[2] *= static_cast<T>(d);
     return *this;
   }
 
-  template<typename Ty>
-  Vec3& operator /= (const Ty d) {
+  Vec3& operator /= (const T d) {
     CCASSERT(d);
-    _xyz[0] /= d;
-    _xyz[1] /= d;
-    _xyz[2] /= d;
-    return *this;
+    return operator *=( static_cast<T>(1.0 / d) );
   }
 
   bool operator == (const Vec3& v) {
@@ -97,11 +92,11 @@ Vec3<T> operator + (const Vec3<T>& v1, const Vec3<T>& v2) {
 
 template<typename T>
 Vec3<T> operator - (const Vec3<T>& v1, const Vec3<T>& v2) {
-  return v1 + (v2 * (-1));
+  return v1 + (v2 * static_cast<T>(-1));
 }
 
-template<typename T, typename Ty>
-Vec3<T> operator * (const Vec3<T>& v1, const Ty d) {
+template<typename T>
+Vec3<T> operator * (const Vec3<T>& v1, const T d) {
   Vec3<T> v(v1); v *= d;
   return v;
 }

@@ -1,5 +1,4 @@
 
-#include <vector>
 #include "helper.h"
 
 
@@ -84,32 +83,34 @@ vertex_ptr SubdivHelper::centerpoint(const face_ptr& face) {
 }
 
 
-void SubdivHelper::average_of_adjacent_facepoints(const vertex_ptr& vert,
-                                                  vertex_ptr avg) {
+size_t SubdivHelper::average_facepoints(const vertex_ptr& vert,
+                                             vertex_ptr* avg) {
+  if (!avg) return 0;
   auto beg = vert->edge;
   size_t sz = 0;
   do {
-    avg->coord += beg->face->facepoint->coord;
-    avg->norm += beg->face->facepoint->norm;
+    (*avg)->coord += beg->face->facepoint->coord;
+    (*avg)->norm += beg->face->facepoint->norm;
     beg = beg->pair->next;
     ++sz;
   } while (beg != vert->edge);
-  avg->coord /= sz;
-  avg->norm /= sz;
+  (*avg)->coord /= sz;
+  return sz;
 }
 
-size_t SubdivHelper::average_of_adjacent_edgepoints(const vertex_ptr& vert,
-                                                    vertex_ptr avg) {
+size_t SubdivHelper::average_mid_edges(const vertex_ptr& vert,
+                                       vertex_ptr* avg) {
+  if (!avg) return 0;
   auto beg = vert->edge;
   size_t sz = 0;
   do {
-    avg->coord += beg->edgepoint->coord;
-    avg->norm += beg->edgepoint->norm;
+    (*avg)->coord += (beg->vert->coord + beg->next->vert->coord) * 0.5;
+    (*avg)->norm += (beg->vert->norm + beg->next->vert->norm) * 0.5;
     beg = beg->pair->next;
     ++sz;
   } while (beg != vert->edge);
-  avg->coord /= sz * 0.5;
-  avg->norm /= sz * 0.5;
+  (*avg)->coord /= sz;
+  (*avg)->norm /= sz;
   return sz;
 }
 
