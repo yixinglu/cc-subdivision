@@ -68,7 +68,7 @@ hedge_ptr SubdivHelper::backward_edge_without_pair(const hedge_ptr& edge) {
 
 hedge_ptr SubdivHelper::forward_edge_without_pair(const hedge_ptr& edge) {
   auto pe = edge;
-  while (pe->pair) {
+  while (pe && pe->pair) {
     pe = pe->pair->next;
   }
   return pe;
