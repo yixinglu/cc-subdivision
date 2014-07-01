@@ -33,7 +33,7 @@ void SubdivHelper::create_face(std::vector<vertex_ptr>& vertices,
     edges[i]->next = edges[ni];
     if (vertices[i]->edge) {
       if (vertices[ni]->edge) {
-        auto pe = last_edge_without_pair(vertices[i]->edge);
+        auto pe = backward_edge_without_pair(vertices[i]->edge);
         if (pe && is_pair_edge(pe, edges[i])) {
           edges[i]->pair = pe;
           pe->pair = edges[i];
@@ -58,7 +58,7 @@ hedge_ptr SubdivHelper::previous_edge(const hedge_ptr& edge) {
   return pe;
 }
 
-hedge_ptr SubdivHelper::last_edge_without_pair(const hedge_ptr& edge) {
+hedge_ptr SubdivHelper::backward_edge_without_pair(const hedge_ptr& edge) {
   auto pe = previous_edge(edge);
   while (pe && pe->pair) {
     pe = previous_edge(pe->pair);
@@ -66,8 +66,16 @@ hedge_ptr SubdivHelper::last_edge_without_pair(const hedge_ptr& edge) {
   return pe;
 }
 
+hedge_ptr SubdivHelper::forward_edge_without_pair(const hedge_ptr& edge) {
+  auto pe = edge;
+  while (pe->pair) {
+    pe = pe->pair->next;
+  }
+  return pe;
+}
 
-vertex_ptr SubdivHelper::centerpoint(const face_ptr& face) {
+
+vertex_ptr SubdivHelper::face_centerpoint(const face_ptr& face) {
   auto beg = face->edge;
   size_t sz = 0;
   vertex_ptr cp = std::make_shared<Vertex>();
@@ -83,17 +91,56 @@ vertex_ptr SubdivHelper::centerpoint(const face_ptr& face) {
 }
 
 
+vertex_ptr SubdivHelper::edge_midpoint(const hedge_ptr& edge) {
+  if (!edge || !edge->next) return nullptr;
+  auto midpnt = std::make_shared<Vertex>();
+  auto& v1 = edge->vert;
+  auto& v2 = edge->next->vert;
+  midpnt->coord = (v1->coord + v2->coord)*0.5;
+  midpnt->norm = (v1->norm + v2->norm)*0.5;
+  return midpnt;
+}
+
+
+vertex_ptr SubdivHelper::average_border_edge_midpoints(
+  const vertex_ptr& vert) {
+  if (!vert->edge) return nullptr;
+  auto edge = forward_edge_without_pair(vert->edge);
+  auto mp1 = edge_midpoint(edge);
+  edge = backward_edge_without_pair(vert->edge);
+  auto mp2 = edge_midpoint(edge);
+  assert(mp2 && mp1);
+  auto avg = std::make_shared<Vertex>();
+  avg->coord = mp1->coord + mp2->coord + vert->coord;
+  avg->coord /= 3.0;
+  avg->norm = mp1->norm + mp2->norm + vert->norm;
+  avg->norm /= 3.0;
+  return avg;
+}
+
+
 size_t SubdivHelper::average_facepoints(const vertex_ptr& vert,
-                                             vertex_ptr* avg) {
-  if (!avg) return 0;
-  auto beg = vert->edge;
+                                        vertex_ptr* avg) {
+  *avg = std::make_shared<Vertex>();
   size_t sz = 0;
+
+  auto beg = vert->edge;
   do {
     (*avg)->coord += beg->face->facepoint->coord;
     (*avg)->norm += beg->face->facepoint->norm;
-    beg = beg->pair->next;
     ++sz;
+    if (!beg->pair) {
+      for (auto pre = previous_edge(vert->edge);
+        pre && pre->pair; pre = previous_edge(pre->pair)) {
+        (*avg)->coord += pre->pair->face->facepoint->coord;
+        (*avg)->norm += pre->pair->face->facepoint->norm;
+        ++sz;
+      }
+      break;
+    }
+    beg = beg->pair->next;
   } while (beg != vert->edge);
+
   (*avg)->coord /= sz;
   (*avg)->norm /= sz;
   return sz;
@@ -101,14 +148,30 @@ size_t SubdivHelper::average_facepoints(const vertex_ptr& vert,
 
 size_t SubdivHelper::average_mid_edges(const vertex_ptr& vert,
                                        vertex_ptr* avg) {
-  if (!avg) return 0;
-  auto beg = vert->edge;
+  *avg = std::make_shared<Vertex>();
   size_t sz = 0;
+
+  auto beg = vert->edge;
   do {
-    (*avg)->coord += (beg->vert->coord + beg->next->vert->coord) * 0.5;
-    (*avg)->norm += (beg->vert->norm + beg->next->vert->norm) * 0.5;
-    beg = beg->pair->next;
+    auto& v1 = beg->vert;
+    assert(beg->next);
+    auto& v2 = beg->next->vert;
+    (*avg)->coord += (v1->coord + v2->coord) * 0.5;
+    (*avg)->norm += (v1->norm + v2->norm) * 0.5;
     ++sz;
+    if (!beg->pair) {
+      for (auto pre = previous_edge(vert->edge);
+        pre ; pre = previous_edge(pre->pair)) {
+        auto& v1 = pre->vert;
+        assert(pre->next);
+        auto& v2 = pre->next->vert;
+        (*avg)->coord += (v1->coord + v2->coord) * 0.5;
+        (*avg)->norm += (v1->norm + v2->norm) * 0.5;
+        ++sz;
+      }
+      break;
+    }
+    beg = beg->pair->next;
   } while (beg != vert->edge);
   (*avg)->coord /= sz;
   (*avg)->norm /= sz;
