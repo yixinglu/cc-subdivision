@@ -19,18 +19,16 @@ void MeshMgr::calc_edgepoints() {
   auto vert = std::make_shared<Vertex>();
   for (auto& edge : meshes[current_mesh]->edges) {
     if (edge->edgepoint) continue;
+    edge->edgepoint = Helper::edge_midpoint(edge);
     if (edge->pair) { // not boundary edge
       auto& fp1 = edge->face->facepoint;
       auto& fp2 = edge->pair->face->facepoint;
-      Helper::reset_vertex(vert);
-      Helper::append_avg_vertex2(fp1, fp2, &vert);
-      auto midep = Helper::edge_midpoint(edge);
-      edge->edgepoint = std::make_shared<Vertex>();
-      Helper::append_avg_vertex2(vert, midep, &edge->edgepoint);
+      auto& ep = edge->edgepoint;
+
+      *vert = (*fp1 + *fp2) * 0.5;
+      *ep = (*ep + *vert) * 0.5;
+
       edge->pair->edgepoint = edge->edgepoint;
-    }
-    else {
-      edge->edgepoint = Helper::edge_midpoint(edge);
     }
 
     Helper::add_vertex_to_mesh(edge->edgepoint, meshes[next_mesh]);
@@ -46,16 +44,12 @@ void MeshMgr::calc_newpoints() {
     auto sz2 = Helper::average_mid_edges(vert, &avg_adj_ep);
 
     if (sz == sz2) {
-      double m1 = 1.0 / sz; double m2 = m1 + m1;
-      Helper::vertex_prod_num(avg_adj_fp, m1);
-      Helper::vertex_prod_num(avg_adj_ep, m2);
-
+      double m1 = 1.0 / sz;
+      double m2 = m1 + m1;
       double m3 = 1.0 - m1 - m2;
       vert->newpoint = std::make_shared<Vertex>();
-      Helper::append_vertex(vert, &vert->newpoint);
-      Helper::vertex_prod_num(vert->newpoint, m3);
-      Helper::append_vertex(avg_adj_ep, &vert->newpoint);
-      Helper::append_vertex(avg_adj_fp, &vert->newpoint);
+      *vert->newpoint = (*vert * m3) + (*avg_adj_ep * m2)
+                      + (*avg_adj_fp * m1);
     }
     else { // boundary vertex
       vert->newpoint = Helper::average_border_edge_midpoints(vert);

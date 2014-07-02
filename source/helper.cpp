@@ -4,11 +4,27 @@
 
 namespace ccsubdiv {
 
+
+Vertex operator + (const Vertex& v1, const Vertex& v2) {
+  Vertex ret;
+  ret.coord = v1.coord + v2.coord;
+  ret.norm = v1.norm + v2.norm;
+  return ret;
+}
+
+Vertex operator * (const Vertex& v, double d) {
+  Vertex ret(v);
+  ret.coord *= d;
+  ret.norm *= d;
+  return ret;
+}
+
+
+
 bool Helper::is_pair_edge(const hedge_ptr& e1,
                                 const hedge_ptr& e2) {
   return (e1->vert->coord == e2->next->vert->coord
     && e1->next->vert->coord == e2->vert->coord);
-    
 }
 
 
@@ -80,11 +96,11 @@ vertex_ptr Helper::face_centerpoint(const face_ptr& face) {
   size_t sz = 0;
   vertex_ptr cp = std::make_shared<Vertex>();
   do {
-    append_vertex(beg->vert, &cp);
+    *cp = *cp + *beg->vert;
     beg = beg->next;
     ++sz;
   } while (beg != face->edge);
-  vertex_prod_num(cp, 1.0 / sz);
+  *cp = *cp * (1.0 / sz);
   return cp;
 }
 
@@ -92,9 +108,7 @@ vertex_ptr Helper::face_centerpoint(const face_ptr& face) {
 vertex_ptr Helper::edge_midpoint(const hedge_ptr& edge) {
   if (!edge || !edge->next) return nullptr;
   auto midpnt = std::make_shared<Vertex>();
-  auto& v1 = edge->vert;
-  auto& v2 = edge->next->vert;
-  append_avg_vertex2(v1, v2, &midpnt);
+  *midpnt = (*edge->vert + *edge->next->vert) * 0.5;
   return midpnt;
 }
 
@@ -107,27 +121,24 @@ vertex_ptr Helper::average_border_edge_midpoints(const vertex_ptr& vert) {
   auto mp2 = edge_midpoint(edge);
   assert(mp2 && mp1);
   auto avg = std::make_shared<Vertex>();
-  append_vertex(mp1, &avg);
-  append_vertex(mp2, &avg);
-  append_vertex(vert, &avg);
-  vertex_prod_num(avg, 1.0 / 3.0);
+  *avg = (*mp1 + *mp2 + *vert) * (1.0 / 3.0);
   return avg;
 }
 
 
 size_t Helper::average_facepoints(const vertex_ptr& vert,
-                                        vertex_ptr* avg) {
+                                  vertex_ptr* avg) {
   *avg = std::make_shared<Vertex>();
   size_t sz = 0;
 
   auto beg = vert->edge;
   do {
-    append_vertex(beg->face->facepoint, avg);
+    **avg = **avg + *beg->face->facepoint;
     ++sz;
     if (!beg->pair) {
       for (auto pre = previous_edge(vert->edge);
         pre && pre->pair; pre = previous_edge(pre->pair)) {
-        append_vertex(pre->pair->face->facepoint, avg);
+        **avg = **avg + *pre->pair->face->facepoint;
         ++sz;
       }
       break;
@@ -135,7 +146,7 @@ size_t Helper::average_facepoints(const vertex_ptr& vert,
     beg = beg->pair->next;
   } while (beg != vert->edge);
 
-  vertex_prod_num(*avg, 1.0 / sz);
+  **avg = **avg * (1.0 / sz);
   return sz;
 }
 
@@ -149,22 +160,22 @@ size_t Helper::average_mid_edges(const vertex_ptr& vert,
     auto& v1 = beg->vert;
     assert(beg->next);
     auto& v2 = beg->next->vert;
-    append_avg_vertex2(v1, v2, avg);
+    **avg = **avg + (*v1 + *v2) * 0.5;
     ++sz;
     if (!beg->pair) {
       for (auto pre = previous_edge(vert->edge);
-        pre ; pre = previous_edge(pre->pair)) {
+           pre ; pre = previous_edge(pre->pair)) {
         auto& v1 = pre->vert;
         assert(pre->next);
         auto& v2 = pre->next->vert;
-        append_avg_vertex2(v1, v2, avg);
+        **avg =**avg + (*v1 + *v2) * 0.5;
         ++sz;
       }
       break;
     }
     beg = beg->pair->next;
   } while (beg != vert->edge);
-  vertex_prod_num(*avg, 1.0 / sz);
+  **avg = **avg * (1.0 / sz);
   return sz;
 }
 
@@ -184,29 +195,6 @@ void Helper::add_vertex_to_mesh(const vertex_ptr& vert,
   mesh->vertices.push_back(vert);
   update_bbox(vert->coord, &mesh->bbox[0], &mesh->bbox[1]);
 }
-
-void Helper::append_avg_vertex2(const vertex_ptr& v1,
-  const vertex_ptr& v2, vertex_ptr* ret) {
-  if (ret == nullptr || *ret == nullptr) return;
-  (*ret)->coord += (v1->coord + v2->coord) * 0.5;
-  (*ret)->norm += (v1->norm + v2->norm) * 0.5;
-}
-
-void Helper::append_vertex(const vertex_ptr& vert, vertex_ptr* ret) {
-  if (ret == nullptr || *ret == nullptr) return;
-  (*ret)->coord += vert->coord;
-  (*ret)->norm += vert->norm;
-}
-
-void Helper::vertex_prod_num(vertex_ptr& v, double d) {
-  v->coord *= d; v->norm *= d;
-}
-
-void Helper::reset_vertex(vertex_ptr& vert) {
-  vert->coord = vec3d();
-  vert->norm = vec3d();
-}
-
 
 
 }
