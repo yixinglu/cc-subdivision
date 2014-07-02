@@ -22,14 +22,14 @@ Vertex operator * (const Vertex& v, double d) {
 
 
 bool Helper::is_pair_edge(const hedge_ptr& e1,
-                                const hedge_ptr& e2) {
+                          const hedge_ptr& e2) {
   return (e1->vert->coord == e2->next->vert->coord
     && e1->next->vert->coord == e2->vert->coord);
 }
 
 
 void Helper::create_face(std::vector<vertex_ptr>& vertices,
-                               mesh_ptr& mesh) {
+                         mesh_ptr& mesh) {
   if (vertices.empty()) return;
 
   face_ptr face = std::make_shared<Face>();
@@ -160,7 +160,7 @@ size_t Helper::average_mid_edges(const vertex_ptr& vert,
     auto& v1 = beg->vert;
     assert(beg->next);
     auto& v2 = beg->next->vert;
-    **avg = **avg + (*v1 + *v2) * 0.5;
+    **avg = **avg + ((*v1 + *v2) * 0.5);
     ++sz;
     if (!beg->pair) {
       for (auto pre = previous_edge(vert->edge);
@@ -168,7 +168,7 @@ size_t Helper::average_mid_edges(const vertex_ptr& vert,
         auto& v1 = pre->vert;
         assert(pre->next);
         auto& v2 = pre->next->vert;
-        **avg =**avg + (*v1 + *v2) * 0.5;
+        **avg =**avg + ((*v1 + *v2) * 0.5);
         ++sz;
       }
       break;
