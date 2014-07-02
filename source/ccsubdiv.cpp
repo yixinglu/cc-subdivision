@@ -23,10 +23,9 @@ void MeshMgr::calc_edgepoints() {
     if (edge->pair) { // not boundary edge
       auto& fp1 = edge->face->facepoint;
       auto& fp2 = edge->pair->face->facepoint;
-      auto& ep = edge->edgepoint;
 
       *vert = (*fp1 + *fp2) * 0.5;
-      *ep = (*ep + *vert) * 0.5;
+      *edge->edgepoint = (*edge->edgepoint + *vert) * 0.5;
 
       edge->pair->edgepoint = edge->edgepoint;
     }
