@@ -21,9 +21,7 @@ void Reader::read_vertex(const std::string& line) {
   }
   vertex_ptr vert = std::make_shared<Vertex>();
   vert->coord = vec3d(x, y, z);
-  mesh->vertices.push_back(vert);
-  SubdivHelper::boundingbox_xyz(vert->coord, &mesh->boundingbox[0],
-                                &mesh->boundingbox[1]);
+  Helper::add_vertex_to_mesh(vert, mesh);
 }
 
 
@@ -85,7 +83,7 @@ void Reader::read_face(const std::string& line) {
     }
   }
   assert(vertices.size() >= 3);
-  SubdivHelper::create_face(vertices, mesh);
+  Helper::create_face(vertices, mesh);
 }
 
 Reader::LineType Reader::get_line_type(const std::string& str){

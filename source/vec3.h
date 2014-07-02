@@ -69,7 +69,8 @@ public:
   }
 
   bool operator == (const Vec3& v) {
-    return is_zero(_xyz[0] - v._xyz[0]) && is_zero(_xyz[1] - v._xyz[1])
+    return is_zero(_xyz[0] - v._xyz[0])
+      && is_zero(_xyz[1] - v._xyz[1])
       && is_zero(_xyz[2] - v._xyz[2]);
   }
 

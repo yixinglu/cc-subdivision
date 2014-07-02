@@ -4,7 +4,7 @@
 
 namespace ccsubdiv {
 
-bool SubdivHelper::is_pair_edge(const hedge_ptr& e1,
+bool Helper::is_pair_edge(const hedge_ptr& e1,
                                 const hedge_ptr& e2) {
   return (e1->vert->coord == e2->next->vert->coord
     && e1->next->vert->coord == e2->vert->coord);
@@ -12,7 +12,7 @@ bool SubdivHelper::is_pair_edge(const hedge_ptr& e1,
 }
 
 
-void SubdivHelper::create_face(std::vector<vertex_ptr>& vertices,
+void Helper::create_face(std::vector<vertex_ptr>& vertices,
                                mesh_ptr& mesh) {
   if (vertices.empty()) return;
 
@@ -49,7 +49,7 @@ void SubdivHelper::create_face(std::vector<vertex_ptr>& vertices,
 }
 
 
-hedge_ptr SubdivHelper::previous_edge(const hedge_ptr& edge) {
+hedge_ptr Helper::previous_edge(const hedge_ptr& edge) {
   if (!edge) return nullptr;
   auto pe = edge;
   while (pe && pe->next != edge) {
@@ -58,7 +58,7 @@ hedge_ptr SubdivHelper::previous_edge(const hedge_ptr& edge) {
   return pe;
 }
 
-hedge_ptr SubdivHelper::backward_edge_without_pair(const hedge_ptr& edge) {
+hedge_ptr Helper::backward_edge_without_pair(const hedge_ptr& edge) {
   auto pe = previous_edge(edge);
   while (pe && pe->pair) {
     pe = previous_edge(pe->pair);
@@ -66,7 +66,7 @@ hedge_ptr SubdivHelper::backward_edge_without_pair(const hedge_ptr& edge) {
   return pe;
 }
 
-hedge_ptr SubdivHelper::forward_edge_without_pair(const hedge_ptr& edge) {
+hedge_ptr Helper::forward_edge_without_pair(const hedge_ptr& edge) {
   auto pe = edge;
   while (pe && pe->pair) {
     pe = pe->pair->next;
@@ -75,35 +75,31 @@ hedge_ptr SubdivHelper::forward_edge_without_pair(const hedge_ptr& edge) {
 }
 
 
-vertex_ptr SubdivHelper::face_centerpoint(const face_ptr& face) {
+vertex_ptr Helper::face_centerpoint(const face_ptr& face) {
   auto beg = face->edge;
   size_t sz = 0;
   vertex_ptr cp = std::make_shared<Vertex>();
   do {
-    cp->coord += beg->vert->coord;
-    cp->norm += beg->vert->norm;
+    append_vertex(beg->vert, &cp);
     beg = beg->next;
     ++sz;
   } while (beg != face->edge);
-  cp->coord /= sz;
-  cp->norm /= sz;
+  vertex_prod_num(cp, 1.0 / sz);
   return cp;
 }
 
 
-vertex_ptr SubdivHelper::edge_midpoint(const hedge_ptr& edge) {
+vertex_ptr Helper::edge_midpoint(const hedge_ptr& edge) {
   if (!edge || !edge->next) return nullptr;
   auto midpnt = std::make_shared<Vertex>();
   auto& v1 = edge->vert;
   auto& v2 = edge->next->vert;
-  midpnt->coord = (v1->coord + v2->coord)*0.5;
-  midpnt->norm = (v1->norm + v2->norm)*0.5;
+  append_avg_vertex2(v1, v2, &midpnt);
   return midpnt;
 }
 
 
-vertex_ptr SubdivHelper::average_border_edge_midpoints(
-  const vertex_ptr& vert) {
+vertex_ptr Helper::average_border_edge_midpoints(const vertex_ptr& vert) {
   if (!vert->edge) return nullptr;
   auto edge = forward_edge_without_pair(vert->edge);
   auto mp1 = edge_midpoint(edge);
@@ -111,29 +107,27 @@ vertex_ptr SubdivHelper::average_border_edge_midpoints(
   auto mp2 = edge_midpoint(edge);
   assert(mp2 && mp1);
   auto avg = std::make_shared<Vertex>();
-  avg->coord = mp1->coord + mp2->coord + vert->coord;
-  avg->coord /= 3.0;
-  avg->norm = mp1->norm + mp2->norm + vert->norm;
-  avg->norm /= 3.0;
+  append_vertex(mp1, &avg);
+  append_vertex(mp2, &avg);
+  append_vertex(vert, &avg);
+  vertex_prod_num(avg, 1.0 / 3.0);
   return avg;
 }
 
 
-size_t SubdivHelper::average_facepoints(const vertex_ptr& vert,
+size_t Helper::average_facepoints(const vertex_ptr& vert,
                                         vertex_ptr* avg) {
   *avg = std::make_shared<Vertex>();
   size_t sz = 0;
 
   auto beg = vert->edge;
   do {
-    (*avg)->coord += beg->face->facepoint->coord;
-    (*avg)->norm += beg->face->facepoint->norm;
+    append_vertex(beg->face->facepoint, avg);
     ++sz;
     if (!beg->pair) {
       for (auto pre = previous_edge(vert->edge);
         pre && pre->pair; pre = previous_edge(pre->pair)) {
-        (*avg)->coord += pre->pair->face->facepoint->coord;
-        (*avg)->norm += pre->pair->face->facepoint->norm;
+        append_vertex(pre->pair->face->facepoint, avg);
         ++sz;
       }
       break;
@@ -141,13 +135,12 @@ size_t SubdivHelper::average_facepoints(const vertex_ptr& vert,
     beg = beg->pair->next;
   } while (beg != vert->edge);
 
-  (*avg)->coord /= sz;
-  (*avg)->norm /= sz;
+  vertex_prod_num(*avg, 1.0 / sz);
   return sz;
 }
 
-size_t SubdivHelper::average_mid_edges(const vertex_ptr& vert,
-                                       vertex_ptr* avg) {
+size_t Helper::average_mid_edges(const vertex_ptr& vert,
+                                 vertex_ptr* avg) {
   *avg = std::make_shared<Vertex>();
   size_t sz = 0;
 
@@ -156,8 +149,7 @@ size_t SubdivHelper::average_mid_edges(const vertex_ptr& vert,
     auto& v1 = beg->vert;
     assert(beg->next);
     auto& v2 = beg->next->vert;
-    (*avg)->coord += (v1->coord + v2->coord) * 0.5;
-    (*avg)->norm += (v1->norm + v2->norm) * 0.5;
+    append_avg_vertex2(v1, v2, avg);
     ++sz;
     if (!beg->pair) {
       for (auto pre = previous_edge(vert->edge);
@@ -165,21 +157,18 @@ size_t SubdivHelper::average_mid_edges(const vertex_ptr& vert,
         auto& v1 = pre->vert;
         assert(pre->next);
         auto& v2 = pre->next->vert;
-        (*avg)->coord += (v1->coord + v2->coord) * 0.5;
-        (*avg)->norm += (v1->norm + v2->norm) * 0.5;
+        append_avg_vertex2(v1, v2, avg);
         ++sz;
       }
       break;
     }
     beg = beg->pair->next;
   } while (beg != vert->edge);
-  (*avg)->coord /= sz;
-  (*avg)->norm /= sz;
+  vertex_prod_num(*avg, 1.0 / sz);
   return sz;
 }
 
-void SubdivHelper::boundingbox_xyz(const vec3d& in,
-                                   vec3d* min, vec3d* max) {
+void Helper::update_bbox(const vec3d& in, vec3d* min, vec3d* max) {
   for (size_t i = 0; i < 3; ++i) {
     if ((*max)[i] < in[i]) {
       (*max)[i] = in[i];
@@ -189,6 +178,35 @@ void SubdivHelper::boundingbox_xyz(const vec3d& in,
     }
   }
 }
+
+void Helper::add_vertex_to_mesh(const vertex_ptr& vert,
+                                mesh_ptr& mesh) {
+  mesh->vertices.push_back(vert);
+  update_bbox(vert->coord, &mesh->bbox[0], &mesh->bbox[1]);
+}
+
+void Helper::append_avg_vertex2(const vertex_ptr& v1,
+  const vertex_ptr& v2, vertex_ptr* ret) {
+  if (ret == nullptr || *ret == nullptr) return;
+  (*ret)->coord += (v1->coord + v2->coord) * 0.5;
+  (*ret)->norm += (v1->norm + v2->norm) * 0.5;
+}
+
+void Helper::append_vertex(const vertex_ptr& vert, vertex_ptr* ret) {
+  if (ret == nullptr || *ret == nullptr) return;
+  (*ret)->coord += vert->coord;
+  (*ret)->norm += vert->norm;
+}
+
+void Helper::vertex_prod_num(vertex_ptr& v, double d) {
+  v->coord *= d; v->norm *= d;
+}
+
+void Helper::reset_vertex(vertex_ptr& vert) {
+  vert->coord = vec3d();
+  vert->norm = vec3d();
+}
+
 
 
 }

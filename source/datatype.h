@@ -46,9 +46,8 @@ struct Mesh {
   std::vector< vertex_ptr > vertices;
   std::vector< hedge_ptr > edges;
   std::vector< face_ptr > faces;
-
-  // boundingbox low and high coordinate
-  vec3d boundingbox[2];
+  // bounding box low and high coordinate
+  vec3d bbox[2];
 };
 
 
@@ -84,7 +83,6 @@ private:
   size_t current_mesh;
   std::vector<mesh_ptr> meshes;
 };
-
 
 }
 #endif

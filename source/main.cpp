@@ -16,7 +16,7 @@ static double rotate_direction[3] = { 0.0, 1.0, 0.0 };
 
 
 double compute_fovy() {
-  auto vdiff = mesh->boundingbox[1] - mesh->boundingbox[0];
+  auto vdiff = mesh->bbox[1] - mesh->bbox[0];
   auto center = vdiff * 0.5;
   vec3d eye(0.0, 0.0, eyez);
   double distance = sqrt(dot_prod(eye, center));
@@ -34,15 +34,12 @@ void init() {
 }
 
 void display() {
-  GLfloat position[] = { 0.0, 0.0, 10.5, 10.0 };
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glColor3f(1.0, 1.0, 1.0);
 
-  auto vdiff = mesh->boundingbox[1] - mesh->boundingbox[0];
+  auto vdiff = mesh->bbox[1] - mesh->bbox[0];
   auto center = vdiff * 0.5;
-
-  glLightfv(GL_LIGHT0, GL_POSITION, position);
 
   glPushMatrix();
   glTranslated(0.0, 0.0, -center[2] - eyez);
@@ -74,6 +71,10 @@ void reshape(int w, int h) {
   double fovy = compute_fovy();
   gluPerspective(fovy, (GLfloat)w / (GLfloat)h, 1, 100.0);
   glMatrixMode(GL_MODELVIEW);
+
+  glLoadIdentity();
+  GLfloat position[] = { 0.0, 0.0, 10.5, 10.0 };
+  glLightfv(GL_LIGHT0, GL_POSITION, position);
 }
 
 void control_rotation(double x, double y, double z,

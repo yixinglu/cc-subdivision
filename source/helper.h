@@ -7,7 +7,7 @@
 namespace ccsubdiv {
 
 
-class SubdivHelper {
+class Helper {
 public:
   static bool is_pair_edge(const hedge_ptr&, const hedge_ptr&);
   static void create_face(std::vector<vertex_ptr>&, mesh_ptr&);
@@ -19,7 +19,12 @@ public:
   static vertex_ptr average_border_edge_midpoints(const vertex_ptr&);
   static size_t average_mid_edges(const vertex_ptr& , vertex_ptr*);
   static size_t average_facepoints(const vertex_ptr&, vertex_ptr*);
-  static void boundingbox_xyz(const vec3d& in, vec3d* max, vec3d* min);
+  static void update_bbox(const vec3d& in, vec3d* max, vec3d* min);
+  static void add_vertex_to_mesh(const vertex_ptr&, mesh_ptr&);
+  static void append_avg_vertex2(const vertex_ptr&, const vertex_ptr&, vertex_ptr*);
+  static void append_vertex(const vertex_ptr&, vertex_ptr*);
+  static void vertex_prod_num(vertex_ptr&, double);
+  static void reset_vertex(vertex_ptr&);
 };
 
 }

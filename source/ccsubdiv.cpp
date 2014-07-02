@@ -8,36 +8,32 @@ namespace ccsubdiv {
 void MeshMgr::calc_facepoints() {
   auto next_mesh = current_mesh + 1;
   for (auto& face : meshes[current_mesh]->faces) {
-    face->facepoint = SubdivHelper::face_centerpoint(face);
-    meshes[next_mesh]->vertices.push_back(face->facepoint);
-    SubdivHelper::boundingbox_xyz(face->facepoint->coord,
-      &meshes[next_mesh]->boundingbox[0],
-      &meshes[next_mesh]->boundingbox[1]);
+    face->facepoint = Helper::face_centerpoint(face);
+    Helper::add_vertex_to_mesh(face->facepoint, meshes[next_mesh]);
   }
 }
 
 
 void MeshMgr::calc_edgepoints() {
   auto next_mesh = current_mesh + 1;
+  auto vert = std::make_shared<Vertex>();
   for (auto& edge : meshes[current_mesh]->edges) {
     if (edge->edgepoint) continue;
-
-    edge->edgepoint = SubdivHelper::edge_midpoint(edge);
     if (edge->pair) { // not boundary edge
       auto& fp1 = edge->face->facepoint;
       auto& fp2 = edge->pair->face->facepoint;
-      auto& mp = edge->edgepoint;
-      auto midfp = (fp1->coord + fp2->coord) * 0.5;
-      edge->edgepoint->coord = (mp->coord + midfp) * 0.5;
-      midfp = (fp1->norm + fp2->norm) * 0.5;
-      edge->edgepoint->norm = (mp->norm + midfp) * 0.5;
+      Helper::reset_vertex(vert);
+      Helper::append_avg_vertex2(fp1, fp2, &vert);
+      auto midep = Helper::edge_midpoint(edge);
+      edge->edgepoint = std::make_shared<Vertex>();
+      Helper::append_avg_vertex2(vert, midep, &edge->edgepoint);
       edge->pair->edgepoint = edge->edgepoint;
     }
+    else {
+      edge->edgepoint = Helper::edge_midpoint(edge);
+    }
 
-    meshes[next_mesh]->vertices.push_back(edge->edgepoint);
-    SubdivHelper::boundingbox_xyz(edge->edgepoint->coord,
-      &meshes[next_mesh]->boundingbox[0],
-      &meshes[next_mesh]->boundingbox[1]);
+    Helper::add_vertex_to_mesh(edge->edgepoint, meshes[next_mesh]);
   }
 }
 
@@ -46,29 +42,26 @@ void MeshMgr::calc_newpoints() {
   auto next_mesh = current_mesh + 1;
   for (auto& vert : meshes[current_mesh]->vertices) {
     vertex_ptr avg_adj_fp, avg_adj_ep;
-    auto sz = SubdivHelper::average_facepoints(vert, &avg_adj_fp);
-    auto sz2 = SubdivHelper::average_mid_edges(vert, &avg_adj_ep);
+    auto sz = Helper::average_facepoints(vert, &avg_adj_fp);
+    auto sz2 = Helper::average_mid_edges(vert, &avg_adj_ep);
 
     if (sz == sz2) {
       double m1 = 1.0 / sz; double m2 = m1 + m1;
-      avg_adj_fp->coord *= m1; avg_adj_fp->norm *= m1;
-      avg_adj_ep->coord *= m2; avg_adj_ep->norm *= m2;
+      Helper::vertex_prod_num(avg_adj_fp, m1);
+      Helper::vertex_prod_num(avg_adj_ep, m2);
 
-      vert->newpoint = std::make_shared<Vertex>();
       double m3 = 1.0 - m1 - m2;
-      vert->newpoint->coord = vert->coord * m3
-        + avg_adj_ep->coord + avg_adj_fp->coord;
-      vert->newpoint->norm = vert->norm * m3
-        + avg_adj_ep->norm + avg_adj_fp->norm;
+      vert->newpoint = std::make_shared<Vertex>();
+      Helper::append_vertex(vert, &vert->newpoint);
+      Helper::vertex_prod_num(vert->newpoint, m3);
+      Helper::append_vertex(avg_adj_ep, &vert->newpoint);
+      Helper::append_vertex(avg_adj_fp, &vert->newpoint);
     }
     else { // boundary vertex
-      vert->newpoint = SubdivHelper::average_border_edge_midpoints(vert);
+      vert->newpoint = Helper::average_border_edge_midpoints(vert);
     }
 
-    meshes[next_mesh]->vertices.push_back(vert->newpoint);
-    SubdivHelper::boundingbox_xyz(vert->newpoint->coord,
-      &meshes[next_mesh]->boundingbox[0],
-      &meshes[next_mesh]->boundingbox[1]);
+    Helper::add_vertex_to_mesh(vert->newpoint, meshes[next_mesh]);
   }
 }
 
@@ -83,7 +76,7 @@ void MeshMgr::connect_edges() {
       pe = pe->next;
       vertices.push_back(pe->vert->newpoint);
       vertices.push_back(pe->edgepoint);
-      SubdivHelper::create_face(vertices, meshes[current_mesh + 1]);
+      Helper::create_face(vertices, meshes[current_mesh + 1]);
     } while (pe != face->edge);
   }
 }
