@@ -1,9 +1,8 @@
-#include "datatype.h"
-#include "readobj.h"
 
 #include <iostream>
-
 #include <gl/freeglut.h>
+#include "datatype.h"
+#include "readobj.h"
 
 using namespace ccsubdiv;
 
@@ -129,6 +128,7 @@ void press_key(unsigned char key, int, int) {
 
 
 int main(int argc, char** argv) {
+  MEM_CHK_START_DBG
 
   if (argc != 2) {
     std::cerr << "Usage: ccsubdiv \"file.obj\"" << std::endl;

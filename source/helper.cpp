@@ -21,14 +21,14 @@ Vertex operator * (const Vertex& v, double d) {
 
 
 
-bool Helper::is_pair_edge(const hedge_ptr& e1,
+bool EdgeHelper::is_pair_edge(const hedge_ptr& e1,
                           const hedge_ptr& e2) {
   return (e1->vert->coord == e2->next->vert->coord
     && e1->next->vert->coord == e2->vert->coord);
 }
 
 
-void Helper::create_face(std::vector<vertex_ptr>& vertices,
+void MeshHelper::create_face(std::vector<vertex_ptr>& vertices,
                          mesh_ptr& mesh) {
   if (vertices.empty()) return;
 
@@ -49,8 +49,8 @@ void Helper::create_face(std::vector<vertex_ptr>& vertices,
     edges[i]->next = edges[ni];
     if (vertices[i]->edge) {
       if (vertices[ni]->edge) {
-        auto pe = backward_edge_without_pair(vertices[i]->edge);
-        if (pe && is_pair_edge(pe, edges[i])) {
+        auto pe = EdgeHelper::backward_edge_without_pair(vertices[i]->edge);
+        if (pe && EdgeHelper::is_pair_edge(pe, edges[i])) {
           edges[i]->pair = pe;
           pe->pair = edges[i];
         }
@@ -65,7 +65,7 @@ void Helper::create_face(std::vector<vertex_ptr>& vertices,
 }
 
 
-hedge_ptr Helper::previous_edge(const hedge_ptr& edge) {
+hedge_ptr EdgeHelper::previous_edge(const hedge_ptr& edge) {
   if (!edge) return nullptr;
   auto pe = edge;
   while (pe && pe->next != edge) {
@@ -74,7 +74,7 @@ hedge_ptr Helper::previous_edge(const hedge_ptr& edge) {
   return pe;
 }
 
-hedge_ptr Helper::backward_edge_without_pair(const hedge_ptr& edge) {
+hedge_ptr EdgeHelper::backward_edge_without_pair(const hedge_ptr& edge) {
   auto pe = previous_edge(edge);
   while (pe && pe->pair) {
     pe = previous_edge(pe->pair);
@@ -82,7 +82,7 @@ hedge_ptr Helper::backward_edge_without_pair(const hedge_ptr& edge) {
   return pe;
 }
 
-hedge_ptr Helper::forward_edge_without_pair(const hedge_ptr& edge) {
+hedge_ptr EdgeHelper::forward_edge_without_pair(const hedge_ptr& edge) {
   auto pe = edge;
   while (pe && pe->pair) {
     pe = pe->pair->next;
@@ -91,7 +91,7 @@ hedge_ptr Helper::forward_edge_without_pair(const hedge_ptr& edge) {
 }
 
 
-vertex_ptr Helper::face_centerpoint(const face_ptr& face) {
+vertex_ptr FaceHelper::centerpoint(const face_ptr& face) {
   auto beg = face->edge;
   size_t sz = 0;
   vertex_ptr cp = std::make_shared<Vertex>();
@@ -105,7 +105,7 @@ vertex_ptr Helper::face_centerpoint(const face_ptr& face) {
 }
 
 
-vertex_ptr Helper::edge_midpoint(const hedge_ptr& edge) {
+vertex_ptr EdgeHelper::midpoint(const hedge_ptr& edge) {
   if (!edge || !edge->next) return nullptr;
   auto midpnt = std::make_shared<Vertex>();
   *midpnt = (*edge->vert + *edge->next->vert) * 0.5;
@@ -113,12 +113,12 @@ vertex_ptr Helper::edge_midpoint(const hedge_ptr& edge) {
 }
 
 
-vertex_ptr Helper::average_border_edge_midpoints(const vertex_ptr& vert) {
+vertex_ptr VertHelper::avg_border_edge_midpts(const vertex_ptr& vert) {
   if (!vert->edge) return nullptr;
-  auto edge = forward_edge_without_pair(vert->edge);
-  auto mp1 = edge_midpoint(edge);
-  edge = backward_edge_without_pair(vert->edge);
-  auto mp2 = edge_midpoint(edge);
+  auto edge = EdgeHelper::forward_edge_without_pair(vert->edge);
+  auto mp1 = EdgeHelper::midpoint(edge);
+  edge = EdgeHelper::backward_edge_without_pair(vert->edge);
+  auto mp2 = EdgeHelper::midpoint(edge);
   assert(mp2 && mp1);
   auto avg = std::make_shared<Vertex>();
   *avg = (*mp1 + *mp2 + *vert) * (1.0 / 3.0);
@@ -126,8 +126,8 @@ vertex_ptr Helper::average_border_edge_midpoints(const vertex_ptr& vert) {
 }
 
 
-size_t Helper::average_facepoints(const vertex_ptr& vert,
-                                  vertex_ptr* avg) {
+size_t VertHelper::avg_adj_facepts(const vertex_ptr& vert,
+                                   vertex_ptr* avg) {
   *avg = std::make_shared<Vertex>();
   size_t sz = 0;
 
@@ -136,8 +136,9 @@ size_t Helper::average_facepoints(const vertex_ptr& vert,
     **avg = **avg + *beg->face->facepoint;
     ++sz;
     if (!beg->pair) {
-      for (auto pre = previous_edge(vert->edge);
-        pre && pre->pair; pre = previous_edge(pre->pair)) {
+      for (auto pre = EdgeHelper::previous_edge(vert->edge);
+           pre && pre->pair;
+           pre = EdgeHelper::previous_edge(pre->pair)) {
         **avg = **avg + *pre->pair->face->facepoint;
         ++sz;
       }
@@ -150,8 +151,8 @@ size_t Helper::average_facepoints(const vertex_ptr& vert,
   return sz;
 }
 
-size_t Helper::average_mid_edges(const vertex_ptr& vert,
-                                 vertex_ptr* avg) {
+size_t VertHelper::avg_adj_edge_midpts(const vertex_ptr& vert,
+                                       vertex_ptr* avg) {
   *avg = std::make_shared<Vertex>();
   size_t sz = 0;
 
@@ -163,8 +164,8 @@ size_t Helper::average_mid_edges(const vertex_ptr& vert,
     **avg = **avg + ((*v1 + *v2) * 0.5);
     ++sz;
     if (!beg->pair) {
-      for (auto pre = previous_edge(vert->edge);
-           pre ; pre = previous_edge(pre->pair)) {
+      for (auto pre = EdgeHelper::previous_edge(vert->edge);
+           pre; pre = EdgeHelper::previous_edge(pre->pair)) {
         auto& v1 = pre->vert;
         assert(pre->next);
         auto& v2 = pre->next->vert;
@@ -179,7 +180,7 @@ size_t Helper::average_mid_edges(const vertex_ptr& vert,
   return sz;
 }
 
-void Helper::update_bbox(const vec3d& in, vec3d* min, vec3d* max) {
+void MeshHelper::update_bbox(const vec3d& in, vec3d* min, vec3d* max) {
   for (size_t i = 0; i < 3; ++i) {
     if ((*max)[i] < in[i]) {
       (*max)[i] = in[i];
@@ -190,8 +191,8 @@ void Helper::update_bbox(const vec3d& in, vec3d* min, vec3d* max) {
   }
 }
 
-void Helper::add_vertex_to_mesh(const vertex_ptr& vert,
-                                mesh_ptr& mesh) {
+void MeshHelper::add_vertex_to_mesh(const vertex_ptr& vert,
+                                    mesh_ptr& mesh) {
   mesh->vertices.push_back(vert);
   update_bbox(vert->coord, &mesh->bbox[0], &mesh->bbox[1]);
 }

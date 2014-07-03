@@ -5,7 +5,7 @@
 
 #include <memory>
 #include <vector>
-
+#include "memchk.h"
 #include "vec3.h"
 
 namespace ccsubdiv {
