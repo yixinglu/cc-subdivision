@@ -49,7 +49,7 @@ void display() {
   if (mesh) {
     for (auto & edge : mesh->edges) {
       auto& v1 = edge->vert;
-      auto& v2 = edge->next->vert;
+      auto& v2 = edge->next.lock()->vert;
       glBegin(GL_LINES);
       glNormal3dv(v1->norm.xyz());
       glVertex3dv(v1->coord.xyz());
@@ -128,7 +128,11 @@ void press_key(unsigned char key, int, int) {
 
 
 int main(int argc, char** argv) {
-  MEM_CHK_START_DBG
+  MEM_CHK_START_DBG;
+  MEM_CHKPT_BEG;
+  //MEM_CHK_SET_BREAK_ALLOC(214);
+  //MEM_CHK_SEND_REPORT_TO_STDOUT
+
 
   if (argc != 2) {
     std::cerr << "Usage: ccsubdiv \"file.obj\"" << std::endl;
@@ -143,6 +147,7 @@ int main(int argc, char** argv) {
 
   mesh = reader.load_obj_file();
   mesh_mgr_ptr = std::make_shared<MeshMgr>(mesh);
+  mesh_mgr_ptr->ccsubdiv(3);
 
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
@@ -156,5 +161,6 @@ int main(int argc, char** argv) {
   glutSpecialFunc(press_arrow_key); // arrow key
   glutMainLoop();
 
+  MEM_CHKPT_END;
   return 0;
 }

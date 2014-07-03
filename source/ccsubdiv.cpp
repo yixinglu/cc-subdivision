@@ -20,14 +20,14 @@ void MeshMgr::calc_edgepoints() {
   for (auto& edge : meshes[current_mesh]->edges) {
     if (edge->edgepoint) continue;
     edge->edgepoint = EdgeHelper::midpoint(edge);
-    if (edge->pair) { // not boundary edge
+    if (!edge->pair.expired()) { // not boundary edge
       auto& fp1 = edge->face->facepoint;
-      auto& fp2 = edge->pair->face->facepoint;
+      auto& fp2 = edge->pair.lock()->face->facepoint;
 
       *vert = (*fp1 + *fp2) * 0.5;
       *edge->edgepoint = (*edge->edgepoint + *vert) * 0.5;
 
-      edge->pair->edgepoint = edge->edgepoint;
+      edge->pair.lock()->edgepoint = edge->edgepoint;
     }
 
     MeshHelper::add_vertex_to_mesh(edge->edgepoint, meshes[next_mesh]);
@@ -61,16 +61,16 @@ void MeshMgr::calc_newpoints() {
 
 void MeshMgr::connect_edges() {
   for (auto& face : meshes[current_mesh]->faces) {
-    hedge_ptr pe = face->edge;
+    hedge_ptr pe = face->edge.lock();
     do {
       std::vector<vertex_ptr> vertices;
       vertices.push_back(face->facepoint);
       vertices.push_back(pe->edgepoint);
-      pe = pe->next;
+      pe = pe->next.lock();
       vertices.push_back(pe->vert->newpoint);
       vertices.push_back(pe->edgepoint);
       MeshHelper::create_face(vertices, meshes[current_mesh + 1]);
-    } while (pe != face->edge);
+    } while (pe != face->edge.lock());
   }
 }
 

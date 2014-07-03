@@ -23,8 +23,8 @@ Vertex operator * (const Vertex& v, double d) {
 
 bool EdgeHelper::is_pair_edge(const hedge_ptr& e1,
                           const hedge_ptr& e2) {
-  return (e1->vert->coord == e2->next->vert->coord
-    && e1->next->vert->coord == e2->vert->coord);
+  return (e1->vert->coord == e2->next.lock()->vert->coord
+    && e1->next.lock()->vert->coord == e2->vert->coord);
 }
 
 
@@ -47,9 +47,9 @@ void MeshHelper::create_face(std::vector<vertex_ptr>& vertices,
   for (size_t i = 0; i < sz; ++i) {
     auto ni = (i + 1) % sz;
     edges[i]->next = edges[ni];
-    if (vertices[i]->edge) {
-      if (vertices[ni]->edge) {
-        auto pe = EdgeHelper::backward_edge_without_pair(vertices[i]->edge);
+    if (!vertices[i]->edge.expired()) {
+      if (!vertices[ni]->edge.expired()) {
+        auto pe = EdgeHelper::backward_edge_without_pair(vertices[i]->edge.lock());
         if (pe && EdgeHelper::is_pair_edge(pe, edges[i])) {
           edges[i]->pair = pe;
           pe->pair = edges[i];
@@ -68,56 +68,56 @@ void MeshHelper::create_face(std::vector<vertex_ptr>& vertices,
 hedge_ptr EdgeHelper::previous_edge(const hedge_ptr& edge) {
   if (!edge) return nullptr;
   auto pe = edge;
-  while (pe && pe->next != edge) {
-    pe = pe->next;
+  while (pe && pe->next.lock() != edge) {
+    pe = pe->next.lock();
   }
   return pe;
 }
 
 hedge_ptr EdgeHelper::backward_edge_without_pair(const hedge_ptr& edge) {
   auto pe = previous_edge(edge);
-  while (pe && pe->pair) {
-    pe = previous_edge(pe->pair);
+  while (pe && !pe->pair.expired()) {
+    pe = previous_edge(pe->pair.lock());
   }
   return pe;
 }
 
 hedge_ptr EdgeHelper::forward_edge_without_pair(const hedge_ptr& edge) {
   auto pe = edge;
-  while (pe && pe->pair) {
-    pe = pe->pair->next;
+  while (pe && !pe->pair.expired()) {
+    pe = pe->pair.lock()->next.lock();
   }
   return pe;
 }
 
 
 vertex_ptr FaceHelper::centerpoint(const face_ptr& face) {
-  auto beg = face->edge;
+  auto beg = face->edge.lock();
   size_t sz = 0;
   vertex_ptr cp = std::make_shared<Vertex>();
   do {
     *cp = *cp + *beg->vert;
-    beg = beg->next;
+    beg = beg->next.lock();
     ++sz;
-  } while (beg != face->edge);
+  } while (beg != face->edge.lock());
   *cp = *cp * (1.0 / sz);
   return cp;
 }
 
 
 vertex_ptr EdgeHelper::midpoint(const hedge_ptr& edge) {
-  if (!edge || !edge->next) return nullptr;
+  if (!edge || edge->next.expired()) return nullptr;
   auto midpnt = std::make_shared<Vertex>();
-  *midpnt = (*edge->vert + *edge->next->vert) * 0.5;
+  *midpnt = (*edge->vert + *edge->next.lock()->vert) * 0.5;
   return midpnt;
 }
 
 
 vertex_ptr VertHelper::avg_border_edge_midpts(const vertex_ptr& vert) {
-  if (!vert->edge) return nullptr;
-  auto edge = EdgeHelper::forward_edge_without_pair(vert->edge);
+  if (vert->edge.expired()) return nullptr;
+  auto edge = EdgeHelper::forward_edge_without_pair(vert->edge.lock());
   auto mp1 = EdgeHelper::midpoint(edge);
-  edge = EdgeHelper::backward_edge_without_pair(vert->edge);
+  edge = EdgeHelper::backward_edge_without_pair(vert->edge.lock());
   auto mp2 = EdgeHelper::midpoint(edge);
   assert(mp2 && mp1);
   auto avg = std::make_shared<Vertex>();
@@ -131,21 +131,21 @@ size_t VertHelper::avg_adj_facepts(const vertex_ptr& vert,
   *avg = std::make_shared<Vertex>();
   size_t sz = 0;
 
-  auto beg = vert->edge;
+  auto beg = vert->edge.lock();
   do {
     **avg = **avg + *beg->face->facepoint;
     ++sz;
-    if (!beg->pair) {
-      for (auto pre = EdgeHelper::previous_edge(vert->edge);
-           pre && pre->pair;
-           pre = EdgeHelper::previous_edge(pre->pair)) {
-        **avg = **avg + *pre->pair->face->facepoint;
+    if (beg->pair.expired()) {
+      for (auto pre = EdgeHelper::previous_edge(vert->edge.lock());
+           pre && !pre->pair.expired();
+           pre = EdgeHelper::previous_edge(pre->pair.lock())) {
+        **avg = **avg + *pre->pair.lock()->face->facepoint;
         ++sz;
       }
       break;
     }
-    beg = beg->pair->next;
-  } while (beg != vert->edge);
+    beg = beg->pair.lock()->next.lock();
+  } while (beg != vert->edge.lock());
 
   **avg = **avg * (1.0 / sz);
   return sz;
@@ -156,26 +156,26 @@ size_t VertHelper::avg_adj_edge_midpts(const vertex_ptr& vert,
   *avg = std::make_shared<Vertex>();
   size_t sz = 0;
 
-  auto beg = vert->edge;
+  auto beg = vert->edge.lock();
   do {
     auto& v1 = beg->vert;
-    assert(beg->next);
-    auto& v2 = beg->next->vert;
+    assert(!beg->next.expired());
+    auto& v2 = beg->next.lock()->vert;
     **avg = **avg + ((*v1 + *v2) * 0.5);
     ++sz;
-    if (!beg->pair) {
-      for (auto pre = EdgeHelper::previous_edge(vert->edge);
-           pre; pre = EdgeHelper::previous_edge(pre->pair)) {
+    if (beg->pair.expired()) {
+      for (auto pre = EdgeHelper::previous_edge(vert->edge.lock());
+           pre; pre = EdgeHelper::previous_edge(pre->pair.lock())) {
         auto& v1 = pre->vert;
-        assert(pre->next);
-        auto& v2 = pre->next->vert;
+        assert(!pre->next.expired());
+        auto& v2 = pre->next.lock()->vert;
         **avg =**avg + ((*v1 + *v2) * 0.5);
         ++sz;
       }
       break;
     }
-    beg = beg->pair->next;
-  } while (beg != vert->edge);
+    beg = beg->pair.lock()->next.lock();
+  } while (beg != vert->edge.lock());
   **avg = **avg * (1.0 / sz);
   return sz;
 }

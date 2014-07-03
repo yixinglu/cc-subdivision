@@ -16,6 +16,7 @@ struct Face;
 struct Mesh;
 
 typedef std::shared_ptr<HEdge> hedge_ptr;
+typedef std::weak_ptr<HEdge> hedge_wptr;
 typedef std::shared_ptr<Vertex> vertex_ptr;
 typedef std::shared_ptr<Face> face_ptr;
 typedef std::shared_ptr<Mesh> mesh_ptr;
@@ -24,20 +25,20 @@ typedef std::shared_ptr<Mesh> mesh_ptr;
 struct Vertex {
   vec3d coord;
   vec3d norm;
-  hedge_ptr edge;
+  hedge_wptr edge;
   vertex_ptr newpoint;
 };
 
 struct Face {
-  hedge_ptr edge;
+  hedge_wptr edge;
   vertex_ptr facepoint;
 };
 
 struct HEdge {
   vertex_ptr edgepoint;
   vertex_ptr vert; // start vertex of edge
-  hedge_ptr pair;
-  hedge_ptr next;
+  hedge_wptr pair;
+  hedge_wptr next;
   face_ptr face;
 };
 

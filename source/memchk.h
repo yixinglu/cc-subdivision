@@ -36,6 +36,13 @@
     }
 
 #define MEM_CHK_SET_BREAK_ALLOC(num) _CrtSetBreakAlloc(num)
+#define MEM_CHK_SEND_REPORT_TO_STDOUT                 \
+  _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);    \
+  _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDOUT);  \
+  _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);   \
+  _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDOUT); \
+  _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);  \
+  _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDOUT);
 
 #else
 
@@ -44,6 +51,7 @@
 #define MEM_CHKPT_BEG
 #define MEM_CHKPT_END
 #define MEM_CHK_SET_BREAK_ALLOC(num)
+#define MEM_CHK_SEND_REPORT_TO_STDOUT
 
 #endif // MEM_CHK_DEBUG
 #endif // _MEMORY_CHECK_H_
