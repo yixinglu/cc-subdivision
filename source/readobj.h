@@ -9,7 +9,9 @@ namespace ccsubdiv {
 
 class Reader {
 public:
-  explicit Reader(const char* filename) : ifs(filename), mesh(new Mesh) {}
+  explicit Reader(const char* filename) : ifs(filename) {
+    mesh = std::make_shared<Mesh>();
+  }
   ~Reader() { ifs.close(); }
   mesh_ptr load_obj_file();
   bool is_open() const { return ifs.is_open(); }
