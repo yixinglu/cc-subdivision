@@ -27,14 +27,14 @@ double compute_fovy() {
 void init() {
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glShadeModel(GL_SMOOTH);
-  glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_DEPTH_TEST);
+  //glEnable(GL_LIGHTING);
+  //glEnable(GL_LIGHT0);
+  //glEnable(GL_DEPTH_TEST);
 }
 
 void display() {
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT/* | GL_DEPTH_BUFFER_BIT*/);
   glColor3f(1.0, 1.0, 1.0);
 
   auto vdiff = mesh->bbox[1] - mesh->bbox[0];
@@ -71,9 +71,9 @@ void reshape(int w, int h) {
   gluPerspective(fovy, (GLfloat)w / (GLfloat)h, 1, 100.0);
   glMatrixMode(GL_MODELVIEW);
 
-  glLoadIdentity();
-  GLfloat position[] = { 0.0, 0.0, 10.5, 10.0 };
-  glLightfv(GL_LIGHT0, GL_POSITION, position);
+  //glLoadIdentity();
+  //GLfloat position[] = { 0.0, 0.0, 10.5, 10.0 };
+  //glLightfv(GL_LIGHT0, GL_POSITION, position);
 }
 
 void control_rotation(double x, double y, double z,
@@ -147,7 +147,6 @@ int main(int argc, char** argv) {
 
   mesh = reader.load_obj_file();
   mesh_mgr_ptr = std::make_shared<MeshMgr>(mesh);
-  mesh_mgr_ptr->ccsubdiv(3);
 
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
