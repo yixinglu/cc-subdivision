@@ -9,8 +9,7 @@ void MeshMgr::calc_facepoints() {
   auto next_mesh = current_mesh + 1;
   for (auto& face : meshes[current_mesh]->faces) {
     face->facepoint = FaceHelper::centerpoint(face);
-    MeshHelper::add_vertex_to_mesh(face->facepoint,
-                                   meshes[next_mesh]);
+    MeshHelper::add_vertex_to_mesh(face->facepoint, meshes[next_mesh]);
   }
 }
 
@@ -31,8 +30,7 @@ void MeshMgr::calc_edgepoints() {
       edge->pair.lock()->edgepoint = edge->edgepoint;
     }
 
-    MeshHelper::add_vertex_to_mesh(edge->edgepoint,
-                                   meshes[next_mesh]);
+    MeshHelper::add_vertex_to_mesh(edge->edgepoint, meshes[next_mesh]);
   }
 }
 
@@ -56,8 +54,7 @@ void MeshMgr::calc_newpoints() {
       vert->newpoint = VertHelper::avg_border_edge_midpts(vert);
     }
 
-    MeshHelper::add_vertex_to_mesh(vert->newpoint,
-                                   meshes[next_mesh]);
+    MeshHelper::add_vertex_to_mesh(vert->newpoint, meshes[next_mesh]);
   }
 }
 
