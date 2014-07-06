@@ -10,8 +10,8 @@
 
 namespace ccsubdiv {
 
-typedef std::shared_ptr<struct HEdge> hedge_ptr;
 typedef std::weak_ptr<struct HEdge> hedge_wptr;
+typedef std::shared_ptr<struct HEdge> hedge_ptr;
 typedef std::shared_ptr<struct Vertex> vertex_ptr;
 typedef std::shared_ptr<struct Face> face_ptr;
 typedef std::shared_ptr<struct Mesh> mesh_ptr;
