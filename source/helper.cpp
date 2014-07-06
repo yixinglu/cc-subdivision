@@ -22,14 +22,14 @@ Vertex operator * (const Vertex& v, double d) {
 
 
 bool EdgeHelper::is_pair_edge(const hedge_ptr& e1,
-                          const hedge_ptr& e2) {
+                              const hedge_ptr& e2) {
   return (e1->vert->coord == e2->next.lock()->vert->coord
     && e1->next.lock()->vert->coord == e2->vert->coord);
 }
 
 
 void MeshHelper::create_face(std::vector<vertex_ptr>& vertices,
-                         mesh_ptr& mesh) {
+                             mesh_ptr& mesh) {
   if (vertices.empty()) return;
 
   face_ptr face = std::make_shared<Face>();
