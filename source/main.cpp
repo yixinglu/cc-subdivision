@@ -7,7 +7,6 @@
 using namespace ccsubdiv;
 
 static mesh_ptr mesh;
-static std::shared_ptr<MeshMgr> mesh_mgr_ptr;
 
 const double eyez = 5.0;
 static int spin = 0;
@@ -110,15 +109,15 @@ void press_arrow_key(int key, int, int) {
 }
 
 void press_key(unsigned char key, int, int) {
-  if (!mesh_mgr_ptr) return;
+  if (!MeshMgr::instance().has_mesh()) return;
   switch (key)
   {
   case 'c':
-    mesh = mesh_mgr_ptr->ccsubdiv();
+    mesh = MeshMgr::instance().ccsubdiv();
     glutPostRedisplay();
     break;
   case 'u':
-    mesh = mesh_mgr_ptr->previous_mesh();
+    mesh = MeshMgr::instance().previous_mesh();
     glutPostRedisplay();
     break;
   default:
@@ -146,7 +145,7 @@ int main(int argc, char** argv) {
   }
 
   mesh = reader.load_obj_file();
-  mesh_mgr_ptr = std::make_shared<MeshMgr>(mesh);
+  MeshMgr::instance().set_mesh(mesh);
 
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);

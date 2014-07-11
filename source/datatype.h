@@ -49,9 +49,16 @@ struct Mesh {
 
 class MeshMgr {
 public:
-  MeshMgr(const mesh_ptr& mesh) : current_mesh(0) {
+  static MeshMgr& instance() {
+    static MeshMgr mgr;
+    return mgr;
+  }
+
+  void set_mesh(const mesh_ptr& mesh) {
     meshes.push_back(mesh);
   }
+
+  bool has_mesh() const { return !meshes.empty(); }
 
   mesh_ptr ccsubdiv(size_t = 1);
   mesh_ptr previous_mesh() {
@@ -68,6 +75,8 @@ public:
   }
 
 private:
+  MeshMgr() : current_mesh(0), meshes() {}
+
   MeshMgr(const MeshMgr&) = delete;
   MeshMgr& operator = (const MeshMgr&) = delete;
 

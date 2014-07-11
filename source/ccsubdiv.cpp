@@ -23,10 +23,8 @@ void MeshMgr::calc_edgepoints() {
     if (!edge->pair.expired()) { // not boundary edge
       auto& fp1 = edge->face->facepoint;
       auto& fp2 = edge->pair.lock()->face->facepoint;
-
       *vert = (*fp1 + *fp2) * 0.5;
       *edge->edgepoint = (*edge->edgepoint + *vert) * 0.5;
-
       edge->pair.lock()->edgepoint = edge->edgepoint;
     }
 
@@ -75,6 +73,8 @@ void MeshMgr::connect_edges() {
 }
 
 mesh_ptr MeshMgr::ccsubdiv(size_t n) {
+  if (current_mesh < 0) return nullptr;
+
   if (current_mesh + n < meshes.size()) {
     current_mesh += n;
     return meshes[current_mesh];
