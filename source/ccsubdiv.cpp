@@ -73,7 +73,7 @@ void MeshMgr::connect_edges() {
 }
 
 mesh_ptr MeshMgr::ccsubdiv(size_t n) {
-  if (current_mesh < 0) return nullptr;
+  if (!has_mesh()) return nullptr;
 
   if (current_mesh + n < meshes.size()) {
     current_mesh += n;
