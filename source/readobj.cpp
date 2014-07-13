@@ -28,8 +28,9 @@ void Reader::read_vertex(const std::string& line) {
 void Reader::read_normal(const std::string& line) {
   std::stringstream sstr(line);
   char v;
+  sstr >> v >> v; // erase vn
   double x = 0.0, y = 0.0, z = 0.0;
-  sstr >> v >> v >> x >> y >> z; // erase vn
+  sstr >> x >> y >> z; 
   normals.push_back(vec3d(x, y, z));
 }
 
