@@ -1,24 +1,16 @@
-OBJECTS = ccsubdiv.obj helper.obj main.obj readobj.obj
-vpath % ./source
-ccsubd : $(OBJECTS)
-	g++ -o ccsubd $(OBJECTS)
+sources := *.cpp
+objects := $(patsubst %.cpp,%.o,$(sources))
 
-ccsubdiv.obj : ccsubdiv.cpp datatype.h helper.h
-	g++ -c ccsubdiv.cpp
+vpath % source
 
-helper.obj : helper.cpp helper.h 
-	g++ -c helper.cpp
+CC=g++
 
-main.obj : main.cpp datatype.h readobj.h
-	g++ -c main.cpp
+ccsubd: $(objects)
+	$(CC) -o $@ $<
 
-readobj.obj : readobj.cpp helper.h
-	g++ -c readobj.cpp
+clean:
+	rm -f *.o ccsubd
+	
+.PHONY: clean
 
-.PHONY : cleanall
-cleanall :
-	-rm -f *.o ccsubd
 
-.PHONY : cleanobj
-cleanobj :
-	-rm -f *.o
