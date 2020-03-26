@@ -1,32 +1,28 @@
 
-#include "helper.h"
+#include "ccsubdiv/utils/helper.h"
 
+#include <vector>
 
 namespace ccsubdiv {
 
-
-Vertex operator + (const Vertex& v1, const Vertex& v2) {
+Vertex operator+(const Vertex& v1, const Vertex& v2) {
   Vertex ret;
   ret.coord = v1.coord + v2.coord;
   ret.norm = v1.norm + v2.norm;
   return ret;
 }
 
-Vertex operator * (const Vertex& v, double d) {
+Vertex operator*(const Vertex& v, double d) {
   Vertex ret(v);
   ret.coord *= d;
   ret.norm *= d;
   return ret;
 }
 
-
-
-bool EdgeHelper::is_pair_edge(const hedge_ptr& e1,
-                              const hedge_ptr& e2) {
-  return (e1->vert->coord == e2->next.lock()->vert->coord
-    && e1->next.lock()->vert->coord == e2->vert->coord);
+bool EdgeHelper::is_pair_edge(const hedge_ptr& e1, const hedge_ptr& e2) {
+  return (e1->vert->coord == e2->next.lock()->vert->coord &&
+          e1->next.lock()->vert->coord == e2->vert->coord);
 }
-
 
 void MeshHelper::create_face(std::vector<vertex_ptr>& vertices,
                              mesh_ptr& mesh) {
@@ -49,21 +45,20 @@ void MeshHelper::create_face(std::vector<vertex_ptr>& vertices,
     edges[i]->next = edges[ni];
     if (!vertices[i]->edge.expired()) {
       if (!vertices[ni]->edge.expired()) {
-        auto pe = EdgeHelper::backward_edge_without_pair(vertices[i]->edge.lock());
+        auto pe =
+            EdgeHelper::backward_edge_without_pair(vertices[i]->edge.lock());
         if (pe && EdgeHelper::is_pair_edge(pe, edges[i])) {
           edges[i]->pair = pe;
           pe->pair = edges[i];
         }
       }
-    }
-    else {
+    } else {
       vertices[i]->edge = edges[i];
     }
   }
   face->edge = edges[0];
   mesh->faces.push_back(face);
 }
-
 
 hedge_ptr EdgeHelper::previous_edge(const hedge_ptr& edge) {
   if (!edge) return nullptr;
@@ -90,7 +85,6 @@ hedge_ptr EdgeHelper::forward_edge_without_pair(const hedge_ptr& edge) {
   return pe;
 }
 
-
 vertex_ptr FaceHelper::centerpoint(const face_ptr& face) {
   auto beg = face->edge.lock();
   size_t sz = 0;
@@ -104,14 +98,12 @@ vertex_ptr FaceHelper::centerpoint(const face_ptr& face) {
   return cp;
 }
 
-
 vertex_ptr EdgeHelper::midpoint(const hedge_ptr& edge) {
   if (!edge || edge->next.expired()) return nullptr;
   auto midpnt = std::make_shared<Vertex>();
   *midpnt = (*edge->vert + *edge->next.lock()->vert) * 0.5;
   return midpnt;
 }
-
 
 vertex_ptr VertHelper::avg_border_edge_midpts(const vertex_ptr& vert) {
   if (vert->edge.expired()) return nullptr;
@@ -125,9 +117,7 @@ vertex_ptr VertHelper::avg_border_edge_midpts(const vertex_ptr& vert) {
   return avg;
 }
 
-
-size_t VertHelper::avg_adj_facepts(const vertex_ptr& vert,
-                                   vertex_ptr* avg) {
+size_t VertHelper::avg_adj_facepts(const vertex_ptr& vert, vertex_ptr* avg) {
   *avg = std::make_shared<Vertex>();
   size_t sz = 0;
 
@@ -164,12 +154,12 @@ size_t VertHelper::avg_adj_edge_midpts(const vertex_ptr& vert,
     **avg = **avg + ((*v1 + *v2) * 0.5);
     ++sz;
     if (beg->pair.expired()) {
-      for (auto pre = EdgeHelper::previous_edge(vert->edge.lock());
-           pre; pre = EdgeHelper::previous_edge(pre->pair.lock())) {
+      for (auto pre = EdgeHelper::previous_edge(vert->edge.lock()); pre;
+           pre = EdgeHelper::previous_edge(pre->pair.lock())) {
         auto& v1 = pre->vert;
         assert(!pre->next.expired());
         auto& v2 = pre->next.lock()->vert;
-        **avg =**avg + ((*v1 + *v2) * 0.5);
+        **avg = **avg + ((*v1 + *v2) * 0.5);
         ++sz;
       }
       break;
@@ -191,12 +181,9 @@ void MeshHelper::update_bbox(const vec3d& in, vec3d* min, vec3d* max) {
   }
 }
 
-void MeshHelper::add_vertex_to_mesh(const vertex_ptr& vert,
-                                    mesh_ptr& mesh) {
+void MeshHelper::add_vertex_to_mesh(const vertex_ptr& vert, mesh_ptr& mesh) {
   mesh->vertices.push_back(vert);
   update_bbox(vert->coord, &mesh->bbox[0], &mesh->bbox[1]);
 }
 
-
-}
-
+}  // namespace ccsubdiv

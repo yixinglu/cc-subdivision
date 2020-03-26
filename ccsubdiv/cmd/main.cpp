@@ -1,8 +1,11 @@
 
-#include <iostream>
 #include <gl/freeglut.h>
-#include "datatype.h"
-#include "readobj.h"
+
+#include <cmath>
+#include <iostream>
+
+#include "ccsubdiv/common/datatype.h"
+#include "ccsubdiv/obj/readobj.h"
 
 using namespace ccsubdiv;
 
