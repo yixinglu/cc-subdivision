@@ -1,2 +1,4 @@
 .ccls-cache
 .DS_Store
+
+build/

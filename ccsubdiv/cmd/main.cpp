@@ -1,5 +1,9 @@
 
+#if defined (__APPLE__)
+#include <GL/freeglut.h>
+#else
 #include <gl/freeglut.h>
+#endif
 
 #include <cmath>
 #include <iostream>
@@ -14,7 +18,6 @@ static mesh_ptr mesh;
 const double eyez = 5.0;
 static int spin = 0;
 static double rotate_direction[3] = { 0.0, 1.0, 0.0 };
-
 
 double compute_fovy() {
   auto vdiff = mesh->bbox[1] - mesh->bbox[0];
