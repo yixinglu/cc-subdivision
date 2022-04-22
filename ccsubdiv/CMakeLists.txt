@@ -1,6 +1,6 @@
 
 add_library(
-  ccsubdiv_lib
+  ccsubdiv
   SHARED
   ccsubdiv.cpp
   helper.cpp
@@ -8,13 +8,13 @@ add_library(
 )
 
 add_executable(
-  ccsubdiv
+  ccsubd
   main.cpp
 )
 
 target_link_libraries(
+  ccsubd
   ccsubdiv
-  ccsubdiv_lib
   GL
   GLU
   ${GLUT_LIBRARIES}
