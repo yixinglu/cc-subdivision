@@ -3,7 +3,7 @@ add_library(
   ccsubdiv
   SHARED
   ccsubdiv.cpp
-  helper.cpp
+  datatype.cpp
   readobj.cpp
 )
 

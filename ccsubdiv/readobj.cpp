@@ -7,8 +7,6 @@
 #include <sstream>
 #include <string>
 
-#include "helper.h"
-
 namespace ccsubdiv {
 
 void Reader::read_vertex(const std::string& line) {
@@ -25,7 +23,7 @@ void Reader::read_vertex(const std::string& line) {
   }
   vertex_ptr vert = std::make_shared<Vertex>();
   vert->coord = vec3d(x, y, z);
-  MeshHelper::add_vertex_to_mesh(vert, mesh);
+  mesh->add_vertex_to_mesh(vert);
 }
 
 void Reader::read_normal(const std::string& line) {
@@ -84,7 +82,7 @@ void Reader::read_face(const std::string& line) {
     }
   }
   assert(vertices.size() >= 3);
-  MeshHelper::create_face(vertices, mesh);
+  mesh->create_face(vertices);
 }
 
 Reader::LineType Reader::get_line_type(const std::string& str) {

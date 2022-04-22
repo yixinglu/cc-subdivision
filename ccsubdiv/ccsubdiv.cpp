@@ -1,13 +1,12 @@
 #include "datatype.h"
-#include "helper.h"
 
 namespace ccsubdiv {
 
 void MeshMgr::calc_facepoints() {
   auto next_mesh = current_mesh + 1;
   for (auto& face : meshes[current_mesh]->faces) {
-    face->facepoint = FaceHelper::centerpoint(face);
-    MeshHelper::add_vertex_to_mesh(face->facepoint, meshes[next_mesh]);
+    face->facepoint = face->centerpoint();
+    meshes[next_mesh]->add_vertex_to_mesh(face->facepoint);
   }
 }
 
@@ -16,7 +15,7 @@ void MeshMgr::calc_edgepoints() {
   auto vert = std::make_shared<Vertex>();
   for (auto& edge : meshes[current_mesh]->edges) {
     if (edge->edgepoint) continue;
-    edge->edgepoint = EdgeHelper::midpoint(edge);
+    edge->edgepoint = edge->midpoint();
     if (!edge->pair.expired()) {  // not boundary edge
       auto& fp1 = edge->face->facepoint;
       auto& fp2 = edge->pair.lock()->face->facepoint;
@@ -25,7 +24,7 @@ void MeshMgr::calc_edgepoints() {
       edge->pair.lock()->edgepoint = edge->edgepoint;
     }
 
-    MeshHelper::add_vertex_to_mesh(edge->edgepoint, meshes[next_mesh]);
+    meshes[next_mesh]->add_vertex_to_mesh(edge->edgepoint);
   }
 }
 
@@ -33,8 +32,8 @@ void MeshMgr::calc_newpoints() {
   auto next_mesh = current_mesh + 1;
   for (auto& vert : meshes[current_mesh]->vertices) {
     vertex_ptr avg_adj_fp, avg_adj_ep;
-    auto sz = VertHelper::avg_adj_facepts(vert, &avg_adj_fp);
-    auto sz2 = VertHelper::avg_adj_edge_midpts(vert, &avg_adj_ep);
+    auto sz = vert->avg_adj_facepts(&avg_adj_fp);
+    auto sz2 = vert->avg_adj_edge_midpts(&avg_adj_ep);
 
     if (sz == sz2) {
       double m1 = 1.0 / sz;
@@ -43,10 +42,10 @@ void MeshMgr::calc_newpoints() {
       vert->newpoint = std::make_shared<Vertex>();
       *vert->newpoint = (*vert * m3) + (*avg_adj_ep * m2) + (*avg_adj_fp * m1);
     } else {  // boundary vertex
-      vert->newpoint = VertHelper::avg_border_edge_midpts(vert);
+      vert->newpoint = vert->avg_border_edge_midpts();
     }
 
-    MeshHelper::add_vertex_to_mesh(vert->newpoint, meshes[next_mesh]);
+    meshes[next_mesh]->add_vertex_to_mesh(vert->newpoint);
   }
 }
 
@@ -60,7 +59,7 @@ void MeshMgr::connect_edges() {
       pe = pe->next.lock();
       vertices.push_back(pe->vert->newpoint);
       vertices.push_back(pe->edgepoint);
-      MeshHelper::create_face(vertices, meshes[current_mesh + 1]);
+      meshes[current_mesh + 1]->create_face(vertices);
     } while (pe != face->edge.lock());
   }
 }
