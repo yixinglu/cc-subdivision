@@ -2,7 +2,7 @@
 add_library(
   ccsubdiv
   SHARED
-  ccsubdiv.cpp
+  meshmgr.cpp
   datatype.cpp
   readobj.cpp
 )

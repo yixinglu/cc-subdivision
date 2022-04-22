@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "datatype.h"
+#include "meshmgr.h"
 #include "readobj.h"
 
 using namespace ccsubdiv;

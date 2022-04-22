@@ -21,40 +21,6 @@ bool HEdge::is_pair_edge(const hedge_ptr& e1) const {
           e1->next.lock()->vert->coord == vert->coord);
 }
 
-void Mesh::create_face(std::vector<vertex_ptr>& vertices) {
-  if (vertices.empty()) return;
-
-  face_ptr face = std::make_shared<Face>();
-  const size_t sz = vertices.size();
-  std::vector<hedge_ptr> edges(sz);
-
-  edges.reserve(edges.size() + sz);
-  for (size_t i = 0; i < sz; ++i) {
-    edges[i] = std::make_shared<HEdge>();
-    edges[i]->vert = vertices[i];
-    edges[i]->face = face;
-    edges.push_back(edges[i]);
-  }
-
-  for (size_t i = 0; i < sz; ++i) {
-    auto ni = (i + 1) % sz;
-    edges[i]->next = edges[ni];
-    if (!vertices[i]->edge.expired()) {
-      if (!vertices[ni]->edge.expired()) {
-        auto pe = vertices[i]->edge.lock()->backward_edge_without_pair();
-        if (pe && pe->is_pair_edge(edges[i])) {
-          edges[i]->pair = pe;
-          pe->pair = edges[i];
-        }
-      }
-    } else {
-      vertices[i]->edge = edges[i];
-    }
-  }
-  face->edge = edges[0];
-  faces.push_back(face);
-}
-
 hedge_ptr HEdge::previous_edge() {
   auto pe = shared_from_this();
   while (pe && pe->next.lock().get() != this) {
@@ -77,19 +43,6 @@ hedge_ptr HEdge::forward_edge_without_pair() {
     pe = pe->pair.lock()->next.lock();
   }
   return pe;
-}
-
-vertex_ptr Face::centerpoint() const {
-  auto beg = edge.lock();
-  size_t sz = 0;
-  vertex_ptr cp = std::make_shared<Vertex>();
-  do {
-    *cp = *cp + *beg->vert;
-    beg = beg->next.lock();
-    ++sz;
-  } while (beg != edge.lock());
-  *cp = *cp * (1.0 / sz);
-  return cp;
 }
 
 vertex_ptr HEdge::midpoint() const {
@@ -163,6 +116,19 @@ size_t Vertex::avg_adj_edge_midpts(vertex_ptr* avg) const {
   return sz;
 }
 
+vertex_ptr Face::centerpoint() const {
+  auto beg = edge.lock();
+  size_t sz = 0;
+  vertex_ptr cp = std::make_shared<Vertex>();
+  do {
+    *cp = *cp + *beg->vert;
+    beg = beg->next.lock();
+    ++sz;
+  } while (beg != edge.lock());
+  *cp = *cp * (1.0 / sz);
+  return cp;
+}
+
 void Mesh::update_bbox(const vec3d& in, vec3d* min, vec3d* max) {
   for (size_t i = 0; i < 3; ++i) {
     if ((*max)[i] < in[i]) {
@@ -172,6 +138,40 @@ void Mesh::update_bbox(const vec3d& in, vec3d* min, vec3d* max) {
       (*min)[i] = in[i];
     }
   }
+}
+
+void Mesh::create_face(std::vector<vertex_ptr>& vertices) {
+  if (vertices.empty()) return;
+
+  face_ptr face = std::make_shared<Face>();
+  const size_t sz = vertices.size();
+  std::vector<hedge_ptr> edges(sz);
+
+  edges.reserve(edges.size() + sz);
+  for (size_t i = 0; i < sz; ++i) {
+    edges[i] = std::make_shared<HEdge>();
+    edges[i]->vert = vertices[i];
+    edges[i]->face = face;
+    edges.push_back(edges[i]);
+  }
+
+  for (size_t i = 0; i < sz; ++i) {
+    auto ni = (i + 1) % sz;
+    edges[i]->next = edges[ni];
+    if (!vertices[i]->edge.expired()) {
+      if (!vertices[ni]->edge.expired()) {
+        auto pe = vertices[i]->edge.lock()->backward_edge_without_pair();
+        if (pe && pe->is_pair_edge(edges[i])) {
+          edges[i]->pair = pe;
+          pe->pair = edges[i];
+        }
+      }
+    } else {
+      vertices[i]->edge = edges[i];
+    }
+  }
+  face->edge = edges[0];
+  faces.push_back(face);
 }
 
 void Mesh::add_vertex_to_mesh(const vertex_ptr& vert) {
