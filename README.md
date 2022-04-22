@@ -7,7 +7,18 @@ The source includes following knowledge:
 * freeglut opengl library.
 * obj file reading implementation.
 
-Usage:
+## Build
+
+In ubuntu:
+
+```shell
+$ sudo apt install -y freeglut3-dev
+$ mkdir build && cd build
+$ cmake .. && make -j
+```
+
+## Usage
+
 * `ccsubd filename.obj`
 * up/down/left/right arrow key -> up/down/left/right rotation
 * `c` key -> subdivison one time
