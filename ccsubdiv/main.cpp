@@ -1,17 +1,20 @@
 
+#include <GL/freeglut.h>
+
+#include <cmath>
 #include <iostream>
-#include <gl/freeglut.h>
+
 #include "datatype.h"
 #include "readobj.h"
 
 using namespace ccsubdiv;
+using namespace std;
 
 static mesh_ptr mesh;
 
 const double eyez = 5.0;
 static int spin = 0;
-static double rotate_direction[3] = { 0.0, 1.0, 0.0 };
-
+static double rotate_direction[3] = {0.0, 1.0, 0.0};
 
 double compute_fovy() {
   auto vdiff = mesh->bbox[1] - mesh->bbox[0];
@@ -19,21 +22,19 @@ double compute_fovy() {
   vec3d eye(0.0, 0.0, eyez);
   double distance = sqrt(dot_prod(eye, center));
   double diag_len = sqrt(dot_prod(vdiff, vdiff));
-  return 2.0*atan2(diag_len / 4.0, distance) * 180 / 3.14159265;
+  return 2.0 * atan2(diag_len / 4.0, distance) * 180 / 3.14159265;
 }
-
 
 void init() {
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glShadeModel(GL_SMOOTH);
-  //glEnable(GL_LIGHTING);
-  //glEnable(GL_LIGHT0);
-  //glEnable(GL_DEPTH_TEST);
+  // glEnable(GL_LIGHTING);
+  // glEnable(GL_LIGHT0);
+  // glEnable(GL_DEPTH_TEST);
 }
 
 void display() {
-
-  glClear(GL_COLOR_BUFFER_BIT/* | GL_DEPTH_BUFFER_BIT*/);
+  glClear(GL_COLOR_BUFFER_BIT /* | GL_DEPTH_BUFFER_BIT*/);
   glColor3f(1.0, 1.0, 1.0);
 
   auto vdiff = mesh->bbox[1] - mesh->bbox[0];
@@ -41,12 +42,12 @@ void display() {
 
   glPushMatrix();
   glTranslated(0.0, 0.0, -center[2] - eyez);
-  glRotated((GLdouble)spin, rotate_direction[0],
-            rotate_direction[1], rotate_direction[2]);
+  glRotated((GLdouble)spin, rotate_direction[0], rotate_direction[1],
+            rotate_direction[2]);
   glTranslated(-center[0], -center[1], -center[2]);
 
   if (mesh) {
-    for (auto & edge : mesh->edges) {
+    for (auto& edge : mesh->edges) {
       auto& v1 = edge->vert;
       auto& v2 = edge->next.lock()->vert;
       glBegin(GL_LINES);
@@ -70,17 +71,15 @@ void reshape(int w, int h) {
   gluPerspective(fovy, (GLfloat)w / (GLfloat)h, 1, 100.0);
   glMatrixMode(GL_MODELVIEW);
 
-  //glLoadIdentity();
-  //GLfloat position[] = { 0.0, 0.0, 10.5, 10.0 };
-  //glLightfv(GL_LIGHT0, GL_POSITION, position);
+  // glLoadIdentity();
+  // GLfloat position[] = { 0.0, 0.0, 10.5, 10.0 };
+  // glLightfv(GL_LIGHT0, GL_POSITION, position);
 }
 
-void control_rotation(double x, double y, double z,
-                      bool anticlock = true) {
+void control_rotation(double x, double y, double z, bool anticlock = true) {
   if (anticlock) {
     spin = (spin + 30) % 360;
-  }
-  else {
+  } else {
     spin = (spin - 30) % 360;
   }
   rotate_direction[0] = x;
@@ -90,48 +89,45 @@ void control_rotation(double x, double y, double z,
 }
 
 void press_arrow_key(int key, int, int) {
-  switch (key)
-  {
-  case GLUT_KEY_LEFT:
-    control_rotation(0, 1, 0, false);
-    break;
-  case GLUT_KEY_RIGHT:
-    control_rotation(0, 1, 0);
-    break;
-  case GLUT_KEY_UP:
-    control_rotation(1, 0, 0, false);
-    break;
-  case GLUT_KEY_DOWN:
-    control_rotation(1, 0, 0);
-    break;
-  default: break;
+  switch (key) {
+    case GLUT_KEY_LEFT:
+      control_rotation(0, 1, 0, false);
+      break;
+    case GLUT_KEY_RIGHT:
+      control_rotation(0, 1, 0);
+      break;
+    case GLUT_KEY_UP:
+      control_rotation(1, 0, 0, false);
+      break;
+    case GLUT_KEY_DOWN:
+      control_rotation(1, 0, 0);
+      break;
+    default:
+      break;
   }
 }
 
 void press_key(unsigned char key, int, int) {
   if (!MeshMgr::instance().has_mesh()) return;
-  switch (key)
-  {
-  case 'c':
-    mesh = MeshMgr::instance().ccsubdiv();
-    glutPostRedisplay();
-    break;
-  case 'u':
-    mesh = MeshMgr::instance().previous_mesh();
-    glutPostRedisplay();
-    break;
-  default:
-    break;
+  switch (key) {
+    case 'c':
+      mesh = MeshMgr::instance().ccsubdiv();
+      glutPostRedisplay();
+      break;
+    case 'u':
+      mesh = MeshMgr::instance().previous_mesh();
+      glutPostRedisplay();
+      break;
+    default:
+      break;
   }
 }
-
 
 int main(int argc, char** argv) {
   MEM_CHK_START_DBG;
   MEM_CHKPT_BEG;
-  //MEM_CHK_SET_BREAK_ALLOC(214);
-  //MEM_CHK_SEND_REPORT_TO_STDOUT
-
+  // MEM_CHK_SET_BREAK_ALLOC(214);
+  // MEM_CHK_SEND_REPORT_TO_STDOUT
 
   if (argc != 2) {
     std::cerr << "Usage: ccsubdiv \"file.obj\"" << std::endl;
@@ -156,7 +152,7 @@ int main(int argc, char** argv) {
   glutDisplayFunc(display);
   glutReshapeFunc(reshape);
   glutKeyboardFunc(press_key);
-  glutSpecialFunc(press_arrow_key); // arrow key
+  glutSpecialFunc(press_arrow_key);  // arrow key
   glutMainLoop();
 
   MEM_CHKPT_END;

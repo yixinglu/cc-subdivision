@@ -1,9 +1,7 @@
 #include "datatype.h"
 #include "helper.h"
 
-
 namespace ccsubdiv {
-
 
 void MeshMgr::calc_facepoints() {
   auto next_mesh = current_mesh + 1;
@@ -13,14 +11,13 @@ void MeshMgr::calc_facepoints() {
   }
 }
 
-
 void MeshMgr::calc_edgepoints() {
   auto next_mesh = current_mesh + 1;
   auto vert = std::make_shared<Vertex>();
   for (auto& edge : meshes[current_mesh]->edges) {
     if (edge->edgepoint) continue;
     edge->edgepoint = EdgeHelper::midpoint(edge);
-    if (!edge->pair.expired()) { // not boundary edge
+    if (!edge->pair.expired()) {  // not boundary edge
       auto& fp1 = edge->face->facepoint;
       auto& fp2 = edge->pair.lock()->face->facepoint;
       *vert = (*fp1 + *fp2) * 0.5;
@@ -31,7 +28,6 @@ void MeshMgr::calc_edgepoints() {
     MeshHelper::add_vertex_to_mesh(edge->edgepoint, meshes[next_mesh]);
   }
 }
-
 
 void MeshMgr::calc_newpoints() {
   auto next_mesh = current_mesh + 1;
@@ -45,17 +41,14 @@ void MeshMgr::calc_newpoints() {
       double m2 = m1 + m1;
       double m3 = 1.0 - m1 - m2;
       vert->newpoint = std::make_shared<Vertex>();
-      *vert->newpoint = (*vert * m3) + (*avg_adj_ep * m2)
-                      + (*avg_adj_fp * m1);
-    }
-    else { // boundary vertex
+      *vert->newpoint = (*vert * m3) + (*avg_adj_ep * m2) + (*avg_adj_fp * m1);
+    } else {  // boundary vertex
       vert->newpoint = VertHelper::avg_border_edge_midpts(vert);
     }
 
     MeshHelper::add_vertex_to_mesh(vert->newpoint, meshes[next_mesh]);
   }
 }
-
 
 void MeshMgr::connect_edges() {
   for (auto& face : meshes[current_mesh]->faces) {
@@ -82,8 +75,8 @@ mesh_ptr MeshMgr::ccsubdiv(size_t n) {
 
   size_t sz = current_mesh + n + 1;
   meshes.reserve(sz);
-  for (current_mesh = meshes.size()-1;
-       current_mesh < sz-1; ++current_mesh) {
+  for (current_mesh = meshes.size() - 1; current_mesh < sz - 1;
+       ++current_mesh) {
     meshes.push_back(std::make_shared<Mesh>());
     calc_facepoints();
     calc_edgepoints();
@@ -93,10 +86,4 @@ mesh_ptr MeshMgr::ccsubdiv(size_t n) {
   return meshes[current_mesh];
 }
 
-
-
-
-} // namespace ccsubdiv
-
-
-
+}  // namespace ccsubdiv
