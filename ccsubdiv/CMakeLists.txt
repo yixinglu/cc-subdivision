@@ -15,7 +15,4 @@ add_executable(
 target_link_libraries(
   ccsubd
   ccsubdiv
-  GL
-  GLU
-  ${GLUT_LIBRARIES}
 )
