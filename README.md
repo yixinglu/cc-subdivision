@@ -17,6 +17,14 @@ $ mkdir build && cd build
 $ cmake .. && make -j
 ```
 
+In macOS:
+
+```shell
+$ brew install freeglut
+$ mkdir build && cd build
+$ cmake .. && make -j
+```
+
 ## Usage
 
 * `ccsubd filename.obj`
